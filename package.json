@@ -11,7 +11,8 @@
     "serve:dist": "node scripts/serve-dist.js"
   },
   "dependencies": {
-    "@supabase/supabase-js": "^2.75.1"
+    "@supabase/supabase-js": "^2.75.1",
+    "qrcode": "^1.5.4"
   },
   "devDependencies": {
     "vite": "^7.0.0"

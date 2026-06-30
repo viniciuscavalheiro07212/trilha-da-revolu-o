@@ -40,7 +40,12 @@
       </aside>
     </section>
 
-    <section class="signup-layout">
+    <nav class="signup-tabs" aria-label="Abas da inscricao">
+      <button class="signup-tab is-active" type="button" data-tab-target="inscricao">Inscricao</button>
+      <button class="signup-tab" type="button" data-tab-target="vouchers">Meus vouchers</button>
+    </nav>
+
+    <section class="signup-layout tab-panel is-active" id="tab-inscricao">
       <form class="signup-form" id="signup-form">
         <div class="form-section-heading">
           <span>Dados do participante</span>
@@ -142,11 +147,14 @@
         <p class="form-note" id="form-status" role="status"></p>
       </form>
 
+    </section>
+
+    <section class="voucher-layout tab-panel" id="tab-vouchers">
       <aside class="voucher-panel" id="voucher-panel" aria-live="polite">
         <div class="voucher-empty">
-          <span>Voucher</span>
+          <span>Meus vouchers</span>
           <strong>Preencha o formulario para gerar sua inscricao.</strong>
-          <p>Os vouchers aparecerao aqui com codigo unico, dados do participante e resumo do evento.</p>
+          <p>Depois de gerar, o voucher aparece aqui com QR Code, codigo unico e aviso sobre a camiseta dos 200 primeiros inscritos.</p>
         </div>
       </aside>
     </section>

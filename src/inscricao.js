@@ -1,9 +1,12 @@
+import QRCode from "qrcode";
 import { criarInscricao } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured } from "./supabase/client.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
 const status = document.querySelector("#form-status");
+const tabButtons = document.querySelectorAll("[data-tab-target]");
+const tabPanels = document.querySelectorAll(".tab-panel");
 const vouchers = [];
 
 const eventInfo = {
@@ -13,6 +16,16 @@ const eventInfo = {
   largada: "08:00hs",
   investimento: "R$100,00",
 };
+
+function activateTab(target) {
+  tabButtons.forEach((button) => {
+    button.classList.toggle("is-active", button.dataset.tabTarget === target);
+  });
+
+  tabPanels.forEach((panelElement) => {
+    panelElement.classList.toggle("is-active", panelElement.id === `tab-${target}`);
+  });
+}
 
 function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
@@ -67,63 +80,108 @@ function field(label, value) {
 function emptyVoucher() {
   panel.innerHTML = `
     <div class="voucher-empty">
-      <span>Voucher</span>
+      <span>Meus vouchers</span>
       <strong>Preencha o formulario para gerar sua inscricao.</strong>
-      <p>O voucher aparecera aqui com codigo unico, dados do participante e resumo do evento.</p>
+      <p>Depois de gerar, o voucher aparece aqui com QR Code, codigo unico e aviso sobre a camiseta dos 200 primeiros inscritos.</p>
     </div>
   `;
 }
 
-function voucherCard(data, index) {
+function camisetaMessage(data) {
+  if (data.camiseta_garantida === true) {
+    return "Camiseta garantida: este voucher esta entre os 200 primeiros inscritos.";
+  }
+
+  if (data.camiseta_garantida === false) {
+    return "Cota de camisetas encerrada: os 200 primeiros vouchers ja foram gerados.";
+  }
+
+  return "Os 200 primeiros vouchers gerados ganham camiseta. Confirme a posicao no credenciamento.";
+}
+
+function qrPayload(data) {
+  return JSON.stringify({
+    evento: eventInfo.nome,
+    voucher: data.voucher_codigo,
+    inscricao: data.numero_inscricao || null,
+    nome: data.nome_completo,
+    telefone: data.telefone,
+    validacao: "pendente",
+  });
+}
+
+async function voucherCard(data, index) {
+  const qrCode = await QRCode.toString(qrPayload(data), {
+    type: "svg",
+    margin: 1,
+    width: 128,
+    errorCorrectionLevel: "M",
+  });
+
+  const voucherNumber = data.numero_inscricao
+    ? `#${String(data.numero_inscricao).padStart(3, "0")}`
+    : index + 1;
+
   return `
     <article class="voucher-card">
       <header class="voucher-top">
         <div class="voucher-title">
-          <span>Voucher ${index + 1} de inscricao</span>
+          <span>Voucher ${voucherNumber} de inscricao</span>
           <strong>${eventInfo.nome}</strong>
         </div>
         <div class="voucher-code">${escapeHtml(data.voucher_codigo)}</div>
       </header>
       <div class="voucher-body">
-        <div class="voucher-name">
-          <span>Participante</span>
-          <strong>${escapeHtml(data.nome_completo)}</strong>
+        <div class="voucher-details">
+          <div class="voucher-name">
+            <span>Participante</span>
+            <strong>${escapeHtml(data.nome_completo)}</strong>
+          </div>
+          <div class="voucher-data">
+            ${field("Telefone", data.telefone)}
+            ${field("CPF", data.cpf)}
+            ${field("Tipo sanguineo", data.tipo_sanguineo)}
+            ${field("Tamanho camiseta", data.tamanho_camiseta)}
+            ${field("Grupo", data.grupo)}
+            ${field("Cidade", data.cidade)}
+            ${field("Veiculo", data.veiculo)}
+            ${field("Comprovante", data.comprovante)}
+            ${field("Data", eventInfo.data)}
+            ${field("Rota", eventInfo.rota)}
+            ${field("Largada", eventInfo.largada)}
+            ${field("Investimento", eventInfo.investimento)}
+          </div>
+          <div class="voucher-alert ${data.camiseta_garantida === false ? "is-over" : ""}">
+            ${escapeHtml(camisetaMessage(data))}
+          </div>
+          <div class="voucher-alert">
+            Para retirar a pulseira: apresentar este voucher, comprovante do PIX, 1kg de alimento nao perecivel e um agasalho.
+          </div>
         </div>
-        <div class="voucher-data">
-          ${field("Telefone", data.telefone)}
-          ${field("CPF", data.cpf)}
-          ${field("Tipo sanguineo", data.tipo_sanguineo)}
-          ${field("Camiseta", data.tamanho_camiseta)}
-          ${field("Grupo", data.grupo)}
-          ${field("Cidade", data.cidade)}
-          ${field("Veiculo", data.veiculo)}
-          ${field("Comprovante", data.comprovante)}
-          ${field("Data", eventInfo.data)}
-          ${field("Rota", eventInfo.rota)}
-          ${field("Largada", eventInfo.largada)}
-          ${field("Investimento", eventInfo.investimento)}
-        </div>
-        <div class="voucher-alert">
-          Para retirar a pulseira: apresentar este voucher, comprovante do PIX, 1kg de alimento nao perecivel e um agasalho.
+        <div class="voucher-qr">
+          ${qrCode}
+          <span>QR Code para validacao futura</span>
         </div>
       </div>
     </article>
   `;
 }
 
-function renderVouchers() {
+async function renderVouchers() {
   if (!vouchers.length) {
     emptyVoucher();
     return;
   }
 
+  const cards = await Promise.all(vouchers.map((voucher, index) => voucherCard(voucher, index)));
+
   panel.innerHTML = `
     <div class="voucher-list">
       <div class="voucher-summary">
         <span>${vouchers.length} ${vouchers.length === 1 ? "inscricao gerada" : "inscricoes geradas"}</span>
-        <strong>${vouchers.map((voucher) => escapeHtml(voucher.voucher_codigo)).join(" · ")}</strong>
+        <strong>${vouchers.map((voucher) => escapeHtml(voucher.voucher_codigo)).join(" - ")}</strong>
       </div>
-      ${vouchers.map((voucher, index) => voucherCard(voucher, index)).join("")}
+      ${cards.join("")}
       <div class="voucher-actions">
         <button type="button" id="print-voucher">Imprimir vouchers</button>
         <button type="button" id="clear-vouchers">Limpar vouchers</button>
@@ -137,14 +195,15 @@ function renderVouchers() {
     form.reset();
     emptyVoucher();
     status.textContent = "";
+    activateTab("inscricao");
     form.querySelector("[name='nome_completo']").focus();
   });
 }
 
 async function maybeSaveToSupabase(data) {
-  if (!isSupabaseConfigured) return false;
+  if (!isSupabaseConfigured) return null;
 
-  await criarInscricao({
+  return criarInscricao({
     nome_completo: data.nome_completo,
     telefone: data.telefone,
     cpf: data.cpf,
@@ -161,9 +220,11 @@ async function maybeSaveToSupabase(data) {
     voucher_emitido_em: data.voucher_emitido_em,
     status: data.status,
   });
-
-  return true;
 }
+
+tabButtons.forEach((button) => {
+  button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -171,18 +232,23 @@ form.addEventListener("submit", async (event) => {
   if (!form.reportValidity()) return;
 
   const data = formToData(form);
-  vouchers.push(data);
-  renderVouchers();
-  form.reset();
-  form.querySelector("[name='nome_completo']").focus();
+  status.textContent = "Gerando voucher...";
 
   try {
     const saved = await maybeSaveToSupabase(data);
+    const voucher = saved ? { ...data, ...saved } : data;
+
+    vouchers.push(voucher);
+    await renderVouchers();
+    activateTab("vouchers");
+    form.reset();
+    form.querySelector("[name='nome_completo']").focus();
+
     status.textContent = saved
-      ? `Voucher ${data.voucher_codigo} gerado e enviado ao Supabase. Voce pode preencher outra inscricao.`
-      : `Voucher ${data.voucher_codigo} gerado. Supabase ainda nao configurado; voce pode preencher outra inscricao.`;
+      ? `Voucher ${voucher.voucher_codigo} gerado e enviado ao Supabase.`
+      : `Voucher ${voucher.voucher_codigo} gerado. Supabase ainda nao configurado; voce pode preencher outra inscricao.`;
   } catch (error) {
-    status.textContent = `Voucher ${data.voucher_codigo} gerado, mas nao foi possivel salvar no Supabase agora.`;
+    status.textContent = "Nao foi possivel salvar no Supabase agora. Tente novamente em instantes.";
     console.error(error);
   }
 });
