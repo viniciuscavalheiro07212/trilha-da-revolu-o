@@ -1,0 +1,155 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Inscricao | VIII Trilha da Revolucao</title>
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/inscricao.css">
+  <script type="module" src="/src/inscricao.js"></script>
+</head>
+<body>
+  <main class="signup-page">
+    <header class="signup-header">
+      <a class="signup-brand" href="index.html" aria-label="Voltar para a home">
+        <span class="signup-brand-mark"></span>
+        <span>
+          <strong>VIII Trilha</strong>
+          <small>da Revolucao</small>
+        </span>
+      </a>
+      <nav class="signup-nav">
+        <a href="index.html#evento">Evento</a>
+        <a href="index.html#largada">Largada</a>
+        <a href="index.html#apoio">Apoio</a>
+      </nav>
+    </header>
+
+    <section class="signup-hero">
+      <div class="signup-hero-copy">
+        <p class="signup-kicker">Inscricao oficial</p>
+        <h1>Garanta sua vaga na VIII Trilha da Revolucao</h1>
+        <p>Preencha os dados de cada piloto para gerar os vouchers de inscricao. Depois de gerar um voucher, o formulario libera uma nova inscricao sem apagar as anteriores.</p>
+      </div>
+      <aside class="event-summary" aria-label="Resumo do evento">
+        <div><span>Data</span><strong>20 SET 2026</strong></div>
+        <div><span>Roteiro</span><strong>Gravatai -> Cidreira</strong></div>
+        <div><span>Investimento</span><strong>R$100,00</strong></div>
+        <div><span>Largada</span><strong>08:00hs</strong></div>
+      </aside>
+    </section>
+
+    <section class="signup-layout">
+      <form class="signup-form" id="signup-form">
+        <div class="form-section-heading">
+          <span>Dados do participante</span>
+          <strong>Campos para o voucher</strong>
+        </div>
+
+        <label>
+          Nome completo
+          <input name="nome_completo" autocomplete="name" required>
+        </label>
+
+        <div class="form-grid">
+          <label>
+            Telefone
+            <input name="telefone" inputmode="tel" autocomplete="tel" required>
+          </label>
+          <label>
+            CPF
+            <input name="cpf" inputmode="numeric" required>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Tipo sanguineo
+            <select name="tipo_sanguineo" required>
+              <option value="">Selecione</option>
+              <option>A+</option>
+              <option>A-</option>
+              <option>B+</option>
+              <option>B-</option>
+              <option>AB+</option>
+              <option>AB-</option>
+              <option>O+</option>
+              <option>O-</option>
+              <option>Nao sei</option>
+            </select>
+          </label>
+          <label>
+            Tamanho da camiseta
+            <select name="tamanho_camiseta" required>
+              <option value="">Selecione</option>
+              <option>PP</option>
+              <option>P</option>
+              <option>M</option>
+              <option>G</option>
+              <option>GG</option>
+              <option>XG</option>
+              <option>XXG</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Grupo que pertence
+            <input name="grupo" required>
+          </label>
+          <label>
+            Cidade
+            <input name="cidade" autocomplete="address-level2" required>
+          </label>
+        </div>
+
+        <div class="form-grid">
+          <label>
+            Veiculo
+            <select name="veiculo" required>
+              <option value="">Selecione</option>
+              <option>Motocicleta</option>
+              <option>Quadriciclo</option>
+            </select>
+          </label>
+          <label>
+            Comprovante PIX
+            <input name="comprovante" placeholder="Codigo, arquivo ou observacao">
+          </label>
+        </div>
+
+        <label>
+          Observacoes
+          <textarea name="observacoes" rows="3" placeholder="Contato de emergencia, restricao alimentar ou observacao importante"></textarea>
+        </label>
+
+        <label class="checkbox-line">
+          <input type="checkbox" name="solidaria" required>
+          Confirmo que levarei 1kg de alimento nao perecivel e um agasalho para retirar a pulseira.
+        </label>
+
+        <label class="checkbox-line">
+          <input type="checkbox" name="termos" required>
+          Conferi meus dados e entendo que o voucher deve ser apresentado no evento.
+        </label>
+
+        <div class="form-actions">
+          <button type="submit">Gerar voucher / adicionar inscricao</button>
+          <a href="https://wa.me/5551993725451" target="_blank" rel="noopener">Falar no WhatsApp</a>
+        </div>
+        <p class="form-note" id="form-status" role="status"></p>
+      </form>
+
+      <aside class="voucher-panel" id="voucher-panel" aria-live="polite">
+        <div class="voucher-empty">
+          <span>Voucher</span>
+          <strong>Preencha o formulario para gerar sua inscricao.</strong>
+          <p>Os vouchers aparecerao aqui com codigo unico, dados do participante e resumo do evento.</p>
+        </div>
+      </aside>
+    </section>
+  </main>
+</body>
+</html>
