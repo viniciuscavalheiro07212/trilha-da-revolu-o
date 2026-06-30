@@ -3,6 +3,9 @@ import { supabase } from "./supabase/client.js";
 const loginButtons = document.querySelectorAll(".auth-login-button");
 const logoutButtons = document.querySelectorAll(".auth-logout-button");
 const voucherLinks = document.querySelectorAll(".auth-vouchers-link");
+const signupLinks = document.querySelectorAll("a[href^='inscricao.html']");
+
+const signupUrl = `${window.location.origin}/inscricao.html`;
 
 function updateHeaderAuth(session) {
   const isLoggedIn = Boolean(session);
@@ -20,7 +23,7 @@ function updateHeaderAuth(session) {
   });
 }
 
-async function loginWithGoogle() {
+async function loginWithGoogle(redirectTo = `${window.location.origin}${window.location.pathname}`) {
   if (!supabase) return;
 
   sessionStorage.setItem("trilha-return-tab", "inscricao");
@@ -28,7 +31,7 @@ async function loginWithGoogle() {
   const { error } = await supabase.auth.signInWithOAuth({
     provider: "google",
     options: {
-      redirectTo: `${window.location.origin}${window.location.pathname}`,
+      redirectTo,
     },
   });
 
@@ -48,6 +51,23 @@ loginButtons.forEach((button) => {
 
 logoutButtons.forEach((button) => {
   button.addEventListener("click", logoutFromGoogle);
+});
+
+signupLinks.forEach((link) => {
+  link.addEventListener("click", async (event) => {
+    if (!supabase) return;
+
+    const { data, error } = await supabase.auth.getSession();
+    if (error) {
+      console.error(error);
+      return;
+    }
+
+    if (data?.session) return;
+
+    event.preventDefault();
+    await loginWithGoogle(signupUrl);
+  });
 });
 
 if (supabase) {
