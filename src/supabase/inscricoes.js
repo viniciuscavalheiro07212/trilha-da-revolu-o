@@ -5,12 +5,10 @@ export async function criarInscricao(dados) {
     throw new Error("Supabase nao configurado. Verifique as variaveis de ambiente.");
   }
 
-  const { data, error } = await supabase
+  const { error } = await supabase
     .from("inscricoes")
-    .insert(dados)
-    .select("id, voucher_codigo, created_at")
-    .single();
+    .insert(dados);
 
   if (error) throw error;
-  return data;
+  return true;
 }
