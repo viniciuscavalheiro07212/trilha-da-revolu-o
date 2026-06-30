@@ -41,9 +41,28 @@
     </section>
 
     <nav class="signup-tabs" aria-label="Abas da inscricao">
+      <button class="signup-tab" type="button" data-tab-target="login">Login</button>
       <button class="signup-tab is-active" type="button" data-tab-target="inscricao">Inscricao</button>
       <button class="signup-tab" type="button" data-tab-target="vouchers">Meus vouchers</button>
     </nav>
+
+    <section class="login-layout tab-panel" id="tab-login">
+      <div class="login-panel">
+        <div class="form-section-heading">
+          <span>Acesso obrigatorio</span>
+          <strong>Conta Google</strong>
+        </div>
+        <div class="login-copy">
+          <strong>Entre com Google para fazer sua inscricao.</strong>
+          <p>Depois do login, voce volta automaticamente para a aba de inscricao. Sem login, o voucher nao pode ser gerado.</p>
+        </div>
+        <div class="login-state" id="login-state" role="status"></div>
+        <div class="form-actions">
+          <button type="button" id="google-login">Entrar com Google</button>
+          <button type="button" id="google-logout" class="secondary-action" hidden>Sair da conta</button>
+        </div>
+      </div>
+    </section>
 
     <section class="signup-layout tab-panel is-active" id="tab-inscricao">
       <form class="signup-form" id="signup-form">

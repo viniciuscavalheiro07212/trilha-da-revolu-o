@@ -1,13 +1,17 @@
 import QRCode from "qrcode";
 import { criarInscricao } from "./supabase/inscricoes.js";
-import { isSupabaseConfigured } from "./supabase/client.js";
+import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
 const status = document.querySelector("#form-status");
+const loginState = document.querySelector("#login-state");
+const loginButton = document.querySelector("#google-login");
+const logoutButton = document.querySelector("#google-logout");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const vouchers = [];
+let currentSession = null;
 
 const eventInfo = {
   nome: "VIII Trilha da Revolucao",
@@ -18,12 +22,99 @@ const eventInfo = {
 };
 
 function activateTab(target) {
+  if (target === "inscricao" && !currentSession) {
+    target = "login";
+    status.textContent = "Faca login com Google para liberar a inscricao.";
+  }
+
   tabButtons.forEach((button) => {
     button.classList.toggle("is-active", button.dataset.tabTarget === target);
   });
 
   tabPanels.forEach((panelElement) => {
     panelElement.classList.toggle("is-active", panelElement.id === `tab-${target}`);
+  });
+}
+
+function sessionName(session) {
+  return session?.user?.user_metadata?.full_name
+    || session?.user?.email
+    || "Conta Google conectada";
+}
+
+function updateAuthUi(session) {
+  currentSession = session;
+  const isLoggedIn = Boolean(session);
+
+  form.classList.toggle("is-locked", !isLoggedIn);
+  Array.from(form.elements).forEach((element) => {
+    element.disabled = !isLoggedIn;
+  });
+
+  loginButton.hidden = isLoggedIn;
+  logoutButton.hidden = !isLoggedIn;
+  loginState.textContent = isLoggedIn
+    ? `Logado como ${sessionName(session)}. A inscricao esta liberada.`
+    : "Voce ainda nao esta logado. Entre com Google para liberar a inscricao.";
+}
+
+async function loginWithGoogle() {
+  if (!supabase) {
+    loginState.textContent = "Supabase ainda nao esta configurado.";
+    return;
+  }
+
+  sessionStorage.setItem("trilha-return-tab", "inscricao");
+
+  const { error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      redirectTo: `${window.location.origin}${window.location.pathname}`,
+    },
+  });
+
+  if (error) {
+    loginState.textContent = "Nao foi possivel iniciar o login com Google.";
+    console.error(error);
+  }
+}
+
+async function logoutFromGoogle() {
+  if (!supabase) return;
+
+  const { error } = await supabase.auth.signOut();
+  if (error) {
+    loginState.textContent = "Nao foi possivel sair da conta agora.";
+    console.error(error);
+  }
+}
+
+async function initAuth() {
+  if (!supabase) {
+    updateAuthUi(null);
+    return;
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) {
+    console.error(error);
+  }
+
+  updateAuthUi(data?.session || null);
+
+  if (data?.session && sessionStorage.getItem("trilha-return-tab") === "inscricao") {
+    sessionStorage.removeItem("trilha-return-tab");
+    activateTab("inscricao");
+  } else if (!data?.session) {
+    activateTab("login");
+  }
+
+  supabase.auth.onAuthStateChange((_event, session) => {
+    updateAuthUi(session);
+    if (session && sessionStorage.getItem("trilha-return-tab") === "inscricao") {
+      sessionStorage.removeItem("trilha-return-tab");
+      activateTab("inscricao");
+    }
   });
 }
 
@@ -201,7 +292,7 @@ async function renderVouchers() {
 }
 
 async function maybeSaveToSupabase(data) {
-  if (!isSupabaseConfigured) return null;
+  if (!isSupabaseConfigured || !currentSession) return null;
 
   return criarInscricao({
     nome_completo: data.nome_completo,
@@ -226,8 +317,17 @@ tabButtons.forEach((button) => {
   button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
 });
 
+loginButton.addEventListener("click", loginWithGoogle);
+logoutButton.addEventListener("click", logoutFromGoogle);
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
+
+  if (!currentSession) {
+    status.textContent = "Faca login com Google antes de gerar o voucher.";
+    activateTab("login");
+    return;
+  }
 
   if (!form.reportValidity()) return;
 
@@ -252,3 +352,5 @@ form.addEventListener("submit", async (event) => {
     console.error(error);
   }
 });
+
+initAuth();

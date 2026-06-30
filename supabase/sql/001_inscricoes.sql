@@ -1,6 +1,8 @@
 create table if not exists public.inscricoes (
   id uuid primary key default gen_random_uuid(),
   nome_completo text not null,
+  usuario_id uuid,
+  usuario_email text,
   telefone text not null,
   cpf text,
   tipo_sanguineo text,
@@ -39,7 +41,33 @@ with check (
 );
 
 revoke insert on table public.inscricoes from anon;
+grant select, insert on table public.inscricoes to authenticated;
 grant select, insert, update, delete on table public.inscricoes to service_role;
+
+drop policy if exists "Permitir envio autenticado de inscricoes" on public.inscricoes;
+create policy "Permitir envio autenticado de inscricoes"
+on public.inscricoes
+for insert
+to authenticated
+with check (
+  usuario_id = (select auth.uid())
+  and nome_completo is not null
+  and length(trim(nome_completo)) >= 3
+  and telefone is not null
+  and length(trim(telefone)) >= 8
+  and solidaria is true
+  and termos is true
+  and status = 'voucher-gerado'
+  and voucher_codigo like 'TR-%'
+  and voucher_emitido_em is not null
+);
+
+drop policy if exists "Participante pode ler seus vouchers" on public.inscricoes;
+create policy "Participante pode ler seus vouchers"
+on public.inscricoes
+for select
+to authenticated
+using (usuario_id = (select auth.uid()));
 
 create or replace function public.criar_inscricao_publica(dados jsonb)
 returns table (
@@ -49,12 +77,16 @@ returns table (
   created_at timestamptz
 )
 language plpgsql
-security definer
+security invoker
 set search_path = public, pg_temp
 as $$
 declare
   nova_inscricao public.inscricoes%rowtype;
 begin
+  if (select auth.uid()) is null then
+    raise exception 'Login obrigatorio';
+  end if;
+
   if length(trim(coalesce(dados->>'nome_completo', ''))) < 3 then
     raise exception 'Nome completo invalido';
   end if;
@@ -81,6 +113,8 @@ begin
 
   insert into public.inscricoes (
     nome_completo,
+    usuario_id,
+    usuario_email,
     telefone,
     cpf,
     tipo_sanguineo,
@@ -97,6 +131,8 @@ begin
     status
   ) values (
     trim(dados->>'nome_completo'),
+    (select auth.uid()),
+    current_setting('request.jwt.claims', true)::jsonb->>'email',
     trim(dados->>'telefone'),
     nullif(trim(coalesce(dados->>'cpf', '')), ''),
     nullif(trim(coalesce(dados->>'tipo_sanguineo', '')), ''),
@@ -123,8 +159,9 @@ end;
 $$;
 
 revoke all on function public.criar_inscricao_publica(jsonb) from public;
-grant execute on function public.criar_inscricao_publica(jsonb) to anon;
+revoke execute on function public.criar_inscricao_publica(jsonb) from anon;
+grant execute on function public.criar_inscricao_publica(jsonb) to authenticated;
 
 -- Por seguranca, nao ha policy publica de SELECT nem INSERT direto para anon.
 -- O formulario publico usa a funcao criar_inscricao_publica, que valida os dados
--- e retorna apenas os metadados necessarios para o voucher.
+-- exige login e retorna apenas os metadados necessarios para o voucher.
