@@ -1022,3 +1022,90 @@ button.site-header-08 {
 }
 
 
+/* =====================================================================
+   RESPONSIVIDADE MOBILE
+   Adicionado sem alterar nenhuma regra desktop acima. Todas as regras
+   abaixo vivem dentro de media queries, entao telas acima de 1024px
+   permanecem exatamente como estavam.
+   ===================================================================== */
+
+/* ---------- Tablet: ate 1024px (ajustes leves) ---------- */
+@media (max-width:1024px) {
+  .hero-01 { min-height:auto; }
+  .final-cta-12,
+  .final-cta-13 { height:280px; }
+}
+
+/* ---------- Mobile: ate 768px (reorganiza o layout em coluna) ---------- */
+@media (max-width:768px) {
+  /* Cabecalho: marca em cima, menu quebra em linha e centraliza */
+  .site-header-01 { flex-wrap:wrap; gap:12px; padding:12px clamp(16px,4vw,24px); }
+  .site-header-07 { width:100%; flex-wrap:wrap; justify-content:center; gap:12px 18px; font-size:14px; }
+  .site-header-09 { padding:10px 20px; }
+
+  /* Hero em coluna unica; a foto recebe altura minima para nao colapsar */
+  .hero-01 { grid-template-columns:1fr; }
+  .hero-03 { padding:clamp(28px,7vw,44px) clamp(20px,5vw,28px); gap:18px; }
+  .hero-37 { min-height:clamp(300px,58vw,420px); }
+
+  /* CTAs do hero: largura total e centralizados */
+  .hero-34 { flex-direction:column; align-items:stretch; }
+  .hero-35,
+  .hero-36 { width:100%; justify-content:center; }
+
+  /* Estatisticas: esconde os separadores verticais ao quebrar em linhas */
+  .event-stats-09 { display:none; }
+
+  /* Secao de inscricao em coluna unica */
+  .registration-03 { grid-template-columns:1fr; }
+
+  /* Grade de beneficios: 5 -> 3 colunas */
+  .registration-18 { grid-template-columns:repeat(3,1fr); }
+
+  /* CTA final: botoes empilhados e imagens uma sobre a outra */
+  .final-cta-09 { flex-direction:column; align-items:stretch; }
+  .final-cta-10 { width:100%; justify-content:center; }
+  .final-cta-11 { grid-template-columns:1fr; }
+  .final-cta-12,
+  .final-cta-13 { height:220px; }
+
+  /* Rodape centralizado */
+  .site-footer-06 { flex-direction:column; text-align:center; }
+  .site-footer-09 { text-align:center; }
+
+  /* Badge sobre a foto do hero: um pouco menor */
+  .hero-42 { padding:12px 18px; }
+  .hero-44 { font-size:clamp(30px,7vw,52px); }
+}
+
+/* ---------- Celulares pequenos: ate 480px (compacta ainda mais) ---------- */
+@media (max-width:480px) {
+  /* Titulo do hero menor para caber em telas estreitas */
+  .hero-07 { font-size:clamp(18px,5vw,26px); }
+  .hero-08 { font-size:clamp(34px,9vw,52px); }
+  .hero-09 { font-size:clamp(38px,10vw,60px); }
+
+  /* Blocos de data/aviso do hero ocupam a largura toda */
+  .hero-11 { gap:10px; }
+  .hero-12,
+  .hero-20 { width:100%; }
+
+  /* Grade de beneficios: 3 -> 2 colunas */
+  .registration-18 { grid-template-columns:repeat(2,1fr); }
+
+  /* Espacamento das estatisticas */
+  .event-stats-05 { gap:22px; }
+
+  /* Imagens do CTA final menores */
+  .final-cta-12,
+  .final-cta-13 { height:180px; }
+
+  /* Botao flutuante do WhatsApp menor e mais no canto */
+  .floating-whatsapp-01 { width:52px; height:52px; font-size:26px; right:16px; bottom:16px; }
+
+  /* Badge da foto ainda menor */
+  .hero-42 { left:16px; bottom:18px; padding:10px 14px; }
+  .hero-44 { font-size:clamp(26px,8vw,40px); }
+}
+
+
