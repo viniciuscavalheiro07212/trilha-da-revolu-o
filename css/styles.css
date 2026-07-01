@@ -201,7 +201,7 @@ button.site-header-08 {
   display:grid;
   grid-template-columns:1.05fr .95fr;
   align-items:stretch;
-  background:radial-gradient(120% 120% at 18% 10%,#15110c 0%,#0b0b0c 55%);
+  background:#0b0b0c;
 }
 .hero-02 {
   position:absolute;
@@ -467,7 +467,15 @@ button.site-header-08 {
 .hero-39 {
   position:absolute;
   inset:0;
-  background:linear-gradient(90deg,#0b0b0c 0%,rgba(11,11,12,.2) 22%,transparent 45%);
+  background:linear-gradient(90deg,
+    #0b0b0c 0%,
+    rgba(11,11,12,.92) 9%,
+    rgba(11,11,12,.72) 16%,
+    rgba(11,11,12,.5) 23%,
+    rgba(11,11,12,.3) 31%,
+    rgba(11,11,12,.14) 39%,
+    rgba(11,11,12,.05) 46%,
+    transparent 54%);
 }
 .hero-40 {
   position:absolute;
