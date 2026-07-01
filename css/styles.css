@@ -448,6 +448,8 @@ button.site-header-08 {
   letter-spacing:.2em;
   font-size:11px;
   color:#7a7a7a;
+  text-decoration:none;
+  cursor:pointer;
 }
 .hero-48 {
   animation:scrollHint 1.8s infinite;
