@@ -260,7 +260,6 @@ async function voucherCard(data, index) {
             ${field("Grupo", data.grupo)}
             ${field("Cidade", data.cidade)}
             ${field("Veiculo", data.veiculo)}
-            ${field("Comprovante", data.comprovante)}
             ${field("Data", eventInfo.data)}
             ${field("Rota", eventInfo.rota)}
             ${field("Largada", eventInfo.largada)}
