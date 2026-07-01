@@ -1082,21 +1082,24 @@ button.site-header-08 {
   box-shadow:0 12px 30px -8px rgba(244,194,13,.6);
 }
 .final-cta-11 {
-  display:grid;
-  grid-template-columns:1fr 1fr;
+  display:flex;
+  justify-content:center;
+  flex-wrap:wrap;
   gap:14px;
   margin-top:40px;
 }
 .final-cta-12 {
-  height:340px;
+  height:420px;
+  aspect-ratio:854/1280;
   border-radius:14px;
-  background:url("../assets/5def10a0-079f-49ab-8d22-af5c3bc6ea83.png") center 35%/cover no-repeat;
+  background:url("../assets/galeria-grupo-trilha.jpg") center/cover no-repeat;
   border:1px solid rgba(255,255,255,.08);
 }
 .final-cta-13 {
-  height:340px;
+  height:420px;
+  aspect-ratio:720/737;
   border-radius:14px;
-  background:url("../assets/9871c63a-4867-4e47-b71c-82c05247b7f5.png") center 55%/cover no-repeat;
+  background:url("../assets/galeria-piloto-lama.jpg") center/cover no-repeat;
   border:1px solid rgba(255,255,255,.08);
 }
 .site-footer-01 {
@@ -1204,7 +1207,7 @@ button.site-header-08 {
 @media (max-width:1024px) {
   .hero-01 { min-height:auto; }
   .final-cta-12,
-  .final-cta-13 { height:280px; }
+  .final-cta-13 { height:340px; }
 }
 
 /* ---------- Mobile: ate 768px (reorganiza o layout em coluna) ---------- */
@@ -1236,9 +1239,9 @@ button.site-header-08 {
   /* CTA final: botoes empilhados e imagens uma sobre a outra */
   .final-cta-09 { flex-direction:column; align-items:stretch; }
   .final-cta-10 { width:100%; justify-content:center; }
-  .final-cta-11 { grid-template-columns:1fr; }
+  .final-cta-11 { flex-direction:column; align-items:center; }
   .final-cta-12,
-  .final-cta-13 { height:220px; }
+  .final-cta-13 { height:auto; width:min(100%,380px); }
 
   /* Rodape centralizado */
   .site-footer-06 { flex-direction:column; text-align:center; }
@@ -1286,7 +1289,7 @@ button.site-header-08 {
 
   /* Imagens do CTA final menores */
   .final-cta-12,
-  .final-cta-13 { height:180px; }
+  .final-cta-13 { width:min(100%,320px); }
 
   /* Botao flutuante do WhatsApp menor e mais no canto */
   .floating-whatsapp-01 { width:52px; height:52px; font-size:26px; right:16px; bottom:16px; }
