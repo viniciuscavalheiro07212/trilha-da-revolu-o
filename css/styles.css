@@ -830,6 +830,74 @@ button.site-header-08 {
   max-width:520px;
   line-height:1.5;
 }
+.start-band-09 {
+  position:absolute;
+  top:clamp(20px,4vw,40px);
+  right:clamp(20px,4vw,48px);
+  z-index:3;
+  max-width:300px;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  padding:18px 20px;
+  background:rgba(11,11,12,.78);
+  border:1px solid rgba(244,194,13,.5);
+  border-radius:14px;
+  backdrop-filter:blur(6px);
+  box-shadow:0 16px 40px -14px rgba(0,0,0,.8);
+  text-decoration:none;
+  transition:border-color .2s ease,transform .2s ease;
+}
+.start-band-09:hover {
+  border-color:#f4c20d;
+  transform:translateY(-2px);
+}
+.start-band-10 {
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  letter-spacing:.14em;
+  text-transform:uppercase;
+  font-size:12px;
+  color:#f4c20d;
+}
+.start-band-11 {
+  font-size:18px;
+}
+.start-band-12 {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;
+  font-style:italic;
+  text-transform:uppercase;
+  font-size:19px;
+  line-height:1.05;
+  color:#fff;
+}
+.start-band-13 {
+  font-family:'Oswald',sans-serif;
+  font-weight:300;
+  font-size:13px;
+  line-height:1.45;
+  color:#cfcfcf;
+}
+.start-band-14 {
+  align-self:flex-start;
+  margin-top:2px;
+  display:inline-flex;
+  align-items:center;
+  gap:6px;
+  background:linear-gradient(95deg,#f4c20d,#f59b16);
+  color:#0b0b0c;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:13px;
+  padding:8px 14px;
+  border-radius:7px;
+}
 .final-cta-01 {
   position:relative;
   padding:clamp(50px,7vw,100px) clamp(20px,4vw,56px);
@@ -1078,6 +1146,14 @@ button.site-header-08 {
   /* Badge sobre a foto do hero: um pouco menor */
   .hero-42 { padding:12px 18px; }
   .hero-44 { font-size:clamp(30px,7vw,52px); }
+
+  /* Card de localizacao da largada: sai do canto e vira bloco no fluxo */
+  .start-band-01 { flex-direction:column; align-items:stretch; }
+  .start-band-09 {
+    position:static;
+    max-width:none;
+    margin:0 clamp(24px,5vw,72px) clamp(36px,6vw,60px);
+  }
 }
 
 /* ---------- Celulares pequenos: ate 480px (compacta ainda mais) ---------- */
