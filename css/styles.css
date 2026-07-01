@@ -952,9 +952,14 @@ button.site-header-08 {
   overflow:hidden;
   border:1px solid rgba(255,255,255,.08);
   background:#0b0b0c;
+  max-width:1080px;
+  margin:0 auto;
+  padding:20px clamp(18px,3.5vw,40px);
 }
 .site-footer-05 {
   width:100%;
+  max-width:940px;
+  margin:0 auto;
   display:block;
 }
 .site-footer-06 {

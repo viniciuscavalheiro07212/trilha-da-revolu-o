@@ -57,15 +57,26 @@ signupLinks.forEach((link) => {
   link.addEventListener("click", async (event) => {
     if (!supabase) return;
 
+    // Bloqueia a navegacao imediatamente (sincronamente). So depois de checar
+    // a sessao decidimos: ir direto para a inscricao ou para o login do Google.
+    event.preventDefault();
+
+    const destino = link.href;
+
     const { data, error } = await supabase.auth.getSession();
     if (error) {
       console.error(error);
+      window.location.href = destino;
       return;
     }
 
-    if (data?.session) return;
+    if (data?.session) {
+      // Ja esta logado -> vai direto para a inscricao.
+      window.location.href = destino;
+      return;
+    }
 
-    event.preventDefault();
+    // Nao esta logado -> login com Google e, apos logar, volta para a inscricao.
     await loginWithGoogle(signupUrl);
   });
 });

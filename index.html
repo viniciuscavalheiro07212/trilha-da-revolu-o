@@ -64,7 +64,7 @@
       <div class="hero-11">
         <div class="hero-12">
           <div class="hero-13">
-            <div class="hero-14">20</div>
+            <div class="hero-14">19</div>
             <div class="hero-15">SET</div>
           </div>
           <div class="hero-16"></div>
@@ -198,9 +198,7 @@
             </div>
           </sc-for>
         </div>
-        <a href="https://wa.me/5551993725451" target="_blank" rel="noopener" class="registration-11">
-          <span class="hero-21">💬</span> Envie tudo: 51 99372-5451
-        </a>
+        <a href="inscricao.html" class="hero-35">Inscreva-se</a>
       </div>
 
       <!-- right: what you get -->
@@ -219,14 +217,6 @@
               <div class="registration-21">{{ p.label }}</div>
             </div>
           </sc-for>
-        </div>
-        <!-- camping note -->
-        <div class="registration-22">
-          <span class="registration-23">⛺</span>
-          <div>
-            <div class="registration-24">Lembrando: café da manhã no camping da Prainha</div>
-            <div class="registration-25">Pagamento diretamente com o camping.</div>
-          </div>
         </div>
       </div>
     </div>
@@ -270,12 +260,12 @@
     <div class="site-footer-02">
       <div class="site-footer-03">Apoio &amp; Patrocínio</div>
       <div class="site-footer-04">
-        <img src="assets/e023b97e-33a6-4d2f-abc4-d23cba917faf.png" alt="Patrocinadores: Bitelo Motos, ALF, Missil, Trindade Off Road, As Trilhas do Tiozinho, Rosito Imóveis, Clemes Veículos" class="site-footer-05">
+        <img src="assets/patrocinadores.png" alt="Patrocinadores: Bitelo Motos, ALF, Missil, Trindade Off Road, As Trilhas do Tiozinho, Rosito Imóveis" class="site-footer-05">
       </div>
       <div class="site-footer-06">
         <div class="site-header-02">
           <div class="site-header-03"></div>
-          <div class="site-footer-07">VIII Trilha da Revolução<br><span class="site-footer-08">GRAVATAÍ → CIDREIRA · 20 SET 2026</span></div>
+          <div class="site-footer-07">VIII Trilha da Revolução<br><span class="site-footer-08">GRAVATAÍ → CIDREIRA · 19 SET 2026</span></div>
         </div>
         <div class="site-footer-09">Organização: Jimie Cristian V. de Freitas · 51 99372-5451<br>Grupo campeão em arrecadação de agasalhos e alimentos.</div>
       </div>
@@ -300,7 +290,7 @@ class Component extends DCLogic {
   componentWillUnmount() { clearInterval(this._t); }
 
   countdown() {
-    const target = new Date('2026-09-20T08:00:00-03:00').getTime();
+    const target = new Date('2026-09-19T08:00:00-03:00').getTime();
     let diff = Math.max(0, target - this.state.now);
     const d = Math.floor(diff / 86400000); diff -= d * 86400000;
     const h = Math.floor(diff / 3600000); diff -= h * 3600000;

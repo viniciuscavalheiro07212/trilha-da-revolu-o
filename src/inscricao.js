@@ -15,7 +15,7 @@ let currentSession = null;
 
 const eventInfo = {
   nome: "VIII Trilha da Revolucao",
-  data: "20 de setembro de 2026",
+  data: "19 de setembro de 2026",
   rota: "Gravatai -> Cidreira",
   largada: "08:00hs",
   investimento: "R$100,00",
