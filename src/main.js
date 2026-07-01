@@ -1,4 +1,5 @@
 import { supabase } from "./supabase/client.js";
+import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 
 const loginButtons = document.querySelectorAll(".auth-login-button");
 const logoutButtons = document.querySelectorAll(".auth-logout-button");
@@ -21,7 +22,11 @@ function updateHeaderAuth(session) {
   voucherLinks.forEach((link) => {
     link.hidden = !isLoggedIn;
   });
+
+  renderUserMenu(session);
 }
+
+initUserMenuToggle();
 
 async function loginWithGoogle(redirectTo = `${window.location.origin}${window.location.pathname}`) {
   if (!supabase) return;

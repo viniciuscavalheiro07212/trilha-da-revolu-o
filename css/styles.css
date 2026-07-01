@@ -95,8 +95,93 @@ button.site-header-08 {
 }
 .auth-vouchers-link[hidden],
 .auth-login-button[hidden],
-.auth-logout-button[hidden] {
+.auth-logout-button[hidden],
+.auth-user[hidden],
+.auth-user-menu[hidden] {
   display:none!important;
+}
+.auth-user {
+  position:relative;
+  display:inline-flex;
+}
+.auth-user-trigger {
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  border:1px solid rgba(255,255,255,.18);
+  background:rgba(255,255,255,.05);
+  color:#fff;
+  font:inherit;
+  cursor:pointer;
+  padding:5px 12px 5px 5px;
+  border-radius:40px;
+}
+.auth-user-trigger:hover {
+  border-color:rgba(244,194,13,.6);
+}
+.auth-user-avatar {
+  width:28px;
+  height:28px;
+  flex:0 0 auto;
+  border-radius:50%;
+  background:linear-gradient(135deg,#28a64a,#188a3a);
+  color:#fff;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:800;
+  font-size:15px;
+  text-transform:uppercase;
+}
+.auth-user-name {
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  letter-spacing:.03em;
+  text-transform:none;
+  font-size:15px;
+  max-width:140px;
+  overflow:hidden;
+  text-overflow:ellipsis;
+  white-space:nowrap;
+}
+.auth-user-caret {
+  font-size:12px;
+  color:#bdbdbd;
+}
+.auth-user-menu {
+  position:absolute;
+  top:calc(100% + 8px);
+  right:0;
+  z-index:70;
+  min-width:190px;
+  display:flex;
+  flex-direction:column;
+  padding:6px;
+  background:#141416;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:12px;
+  box-shadow:0 16px 40px -12px rgba(0,0,0,.85);
+}
+.auth-user-item {
+  display:block;
+  width:100%;
+  padding:10px 12px;
+  border:0;
+  background:transparent;
+  color:#e6e6e6;
+  font-family:'Barlow Condensed',sans-serif;
+  font-weight:700;
+  letter-spacing:.04em;
+  text-transform:uppercase;
+  font-size:14px;
+  text-align:left;
+  text-decoration:none;
+  border-radius:8px;
+  cursor:pointer;
+}
+.auth-user-item:hover {
+  background:rgba(255,255,255,.08);
 }
 .site-header-09 {
   display:inline-flex;
@@ -1155,6 +1240,14 @@ button.site-header-08 {
     transform:none;
     max-width:none;
     margin:0 clamp(24px,5vw,72px) clamp(36px,6vw,60px);
+  }
+
+  /* Dropdown do usuario centralizado sob o gatilho para nao cortar na tela */
+  .auth-user-menu {
+    right:auto;
+    left:50%;
+    transform:translateX(-50%);
+    max-width:calc(100vw - 24px);
   }
 }
 

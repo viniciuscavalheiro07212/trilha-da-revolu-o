@@ -32,9 +32,18 @@
       <a href="inscricao.html" class="site-header-08">Inscrição</a>
       <a href="#largada" class="site-header-08">Largada</a>
       <a href="#apoio" class="site-header-08">Apoio</a>
-      <a href="inscricao.html?vouchers=1" class="site-header-08 auth-vouchers-link" hidden>Meus vouchers</a>
       <button type="button" class="site-header-08 auth-login-button">Login</button>
-      <button type="button" class="site-header-08 auth-logout-button" hidden>Sair</button>
+      <div class="auth-user" hidden>
+        <button type="button" class="auth-user-trigger" aria-haspopup="true" aria-expanded="false">
+          <span class="auth-user-avatar" aria-hidden="true"></span>
+          <span class="auth-user-name"></span>
+          <span class="auth-user-caret" aria-hidden="true">▾</span>
+        </button>
+        <div class="auth-user-menu" hidden>
+          <a href="inscricao.html?vouchers=1" class="auth-user-item auth-vouchers-link">Meus vouchers</a>
+          <button type="button" class="auth-user-item auth-logout-button">Sair</button>
+        </div>
+      </div>
       <a href="inscricao.html" class="site-header-09">INSCREVA-SE</a>
     </nav>
   </div>

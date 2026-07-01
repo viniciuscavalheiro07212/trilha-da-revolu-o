@@ -23,9 +23,18 @@
         <a href="index.html#evento">Evento</a>
         <a href="index.html#largada">Largada</a>
         <a href="index.html#apoio">Apoio</a>
-        <a href="inscricao.html?vouchers=1" class="auth-vouchers-link" hidden>Meus vouchers</a>
         <button type="button" class="header-auth-button auth-login-button">Login</button>
-        <button type="button" class="header-auth-button auth-logout-button" hidden>Sair</button>
+        <div class="auth-user" hidden>
+          <button type="button" class="auth-user-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="auth-user-avatar" aria-hidden="true"></span>
+            <span class="auth-user-name"></span>
+            <span class="auth-user-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="auth-user-menu" hidden>
+            <a href="inscricao.html?vouchers=1" class="auth-user-item auth-vouchers-link">Meus vouchers</a>
+            <button type="button" class="auth-user-item auth-logout-button">Sair</button>
+          </div>
+        </div>
       </nav>
     </header>
 

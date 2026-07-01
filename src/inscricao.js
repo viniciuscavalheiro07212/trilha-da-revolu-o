@@ -1,6 +1,7 @@
 import QRCode from "qrcode";
 import { criarInscricao, listarMinhasInscricoes } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
+import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
@@ -61,6 +62,8 @@ function updateAuthUi(session) {
   voucherLinks.forEach((link) => {
     link.hidden = !isLoggedIn;
   });
+
+  renderUserMenu(session);
 
   status.textContent = isLoggedIn
     ? `Logado como ${sessionName(session)}. A inscricao esta liberada.`
@@ -360,6 +363,8 @@ loginButtons.forEach((button) => {
 logoutButtons.forEach((button) => {
   button.addEventListener("click", logoutFromGoogle);
 });
+
+initUserMenuToggle();
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
