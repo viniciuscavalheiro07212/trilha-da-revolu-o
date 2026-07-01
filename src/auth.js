@@ -36,17 +36,21 @@ export async function logoutFromGoogle() {
 
 // Liga os botoes de login/logout do cabecalho. Os callbacks sao opcionais e
 // permitem que cada pagina mostre suas proprias mensagens de status.
+// Event delegation no document: o runtime da home re-renderiza o cabecalho a
+// partir do template <x-dc> e listeners presos direto nos botoes se perdem.
 export function bindAuthButtons({ onLoginError, onLogoutError, afterLogout } = {}) {
-  document.querySelectorAll(".auth-login-button").forEach((button) => {
-    // Nao passar loginWithGoogle direto: o evento de clique entraria como redirectTo.
-    button.addEventListener("click", async () => {
+  if (document.body.dataset.authButtonsBound === "1") return;
+  document.body.dataset.authButtonsBound = "1";
+
+  document.addEventListener("click", async (event) => {
+    if (event.target.closest(".auth-login-button")) {
+      // Nao passar o evento para loginWithGoogle: entraria como redirectTo.
       const { error } = await loginWithGoogle();
       if (error && onLoginError) onLoginError(error);
-    });
-  });
+      return;
+    }
 
-  document.querySelectorAll(".auth-logout-button").forEach((button) => {
-    button.addEventListener("click", async () => {
+    if (event.target.closest(".auth-logout-button")) {
       const { error } = await logoutFromGoogle();
 
       if (error) {
@@ -55,6 +59,6 @@ export function bindAuthButtons({ onLoginError, onLogoutError, afterLogout } = {
       }
 
       if (afterLogout) afterLogout();
-    });
+    }
   });
 }

@@ -55,6 +55,11 @@ function applyUserMenuState() {
   document.querySelectorAll(".auth-vouchers-link").forEach((link) => {
     if (link.hidden === isLoggedIn) link.hidden = !isLoggedIn;
   });
+  // O CTA "Inscreva-se" do cabecalho so aparece deslogado; logado, a opcao
+  // equivalente vive dentro do dropdown do usuario.
+  document.querySelectorAll(".auth-signup-cta").forEach((link) => {
+    if (link.hidden !== isLoggedIn) link.hidden = isLoggedIn;
+  });
 
   if (!isLoggedIn) {
     closeUserMenus();

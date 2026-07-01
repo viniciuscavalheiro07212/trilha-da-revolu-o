@@ -2,7 +2,7 @@ import QRCode from "qrcode";
 import { criarInscricao, listarMinhasInscricoes } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
-import { bindAuthButtons, RETURN_TAB_KEY } from "./auth.js";
+import { bindAuthButtons, loginWithGoogle, RETURN_TAB_KEY } from "./auth.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
@@ -327,7 +327,19 @@ async function maybeSaveToSupabase(data) {
 }
 
 tabButtons.forEach((button) => {
-  button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
+  button.addEventListener("click", async () => {
+    const target = button.dataset.tabTarget;
+
+    // Sem login, o botao de inscricao leva direto ao login com Google
+    // (que volta para esta pagina depois de logar).
+    if (target === "inscricao" && !currentSession) {
+      const { error } = await loginWithGoogle();
+      if (error) status.textContent = "Nao foi possivel iniciar o login com Google.";
+      return;
+    }
+
+    activateTab(target);
+  });
 });
 
 bindAuthButtons({

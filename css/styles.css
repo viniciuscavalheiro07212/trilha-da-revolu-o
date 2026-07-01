@@ -96,6 +96,7 @@ button.site-header-08 {
 .auth-vouchers-link[hidden],
 .auth-login-button[hidden],
 .auth-logout-button[hidden],
+.auth-signup-cta[hidden],
 .auth-user[hidden],
 .auth-user-menu[hidden] {
   display:none!important;
