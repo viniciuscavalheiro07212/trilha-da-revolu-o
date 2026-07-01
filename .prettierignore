@@ -1,0 +1,9 @@
+# Gerados ou exportados do Cloud Code Design — nao reformatar.
+dist/
+node_modules/
+assets/
+public/
+docs/
+css/
+*.html
+package-lock.json

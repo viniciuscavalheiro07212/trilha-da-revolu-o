@@ -18,7 +18,8 @@ export async function listarMinhasInscricoes() {
 
   const { data, error } = await supabase
     .from("inscricoes")
-    .select(`
+    .select(
+      `
       nome_completo,
       telefone,
       cpf,
@@ -37,7 +38,8 @@ export async function listarMinhasInscricoes() {
       numero_inscricao,
       camiseta_garantida,
       created_at
-    `)
+    `,
+    )
     .order("numero_inscricao", { ascending: false });
 
   if (error) throw error;

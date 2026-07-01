@@ -9,18 +9,22 @@ Esta pasta foi gerada a partir do HTML exportado pelo Cloud Code Design.
 - `css/fonts.css`: fontes extraidas do pacote original.
 - `css/styles.css`: estilos organizados fora da marcacao HTML.
 - `css/inscricao.css`: estilos da pagina de inscricao e voucher.
-- `assets/`: imagens, fontes e scripts extraidos do HTML empacotado.
-- `src/`: ponto de entrada para futuras integracoes e cliente Supabase.
-- `supabase/`: documentacao e SQL base para futuras tabelas.
+- `assets/`: imagens e fontes extraidas do HTML empacotado (processadas pelo Vite).
+- `public/assets/`: runtime do Cloud Code Design, copiado como esta para o build.
+- `src/`: JavaScript das paginas (auth compartilhada, menu de usuario, cliente Supabase).
+- `supabase/`: documentacao e migracoes SQL versionadas (`supabase/migrations/`).
 - `docs/original-template.html`: template original extraido, para comparacao.
-- `package.json`: scripts para desenvolvimento e build.
+- `package.json`: scripts para desenvolvimento, build e lint.
 
 ## Comandos
 
 ```bash
 npm install
-npm run dev
-npm run build
+npm run dev           # desenvolvimento (Vite)
+npm run build         # build de producao em dist/
+npm run preview       # serve o build de dist/
+npm run lint          # ESLint
+npm run format        # Prettier
 ```
 
 ## Supabase

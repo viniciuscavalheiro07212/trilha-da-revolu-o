@@ -2,13 +2,11 @@ import QRCode from "qrcode";
 import { criarInscricao, listarMinhasInscricoes } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
+import { bindAuthButtons, RETURN_TAB_KEY } from "./auth.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
 const status = document.querySelector("#form-status");
-const loginButtons = document.querySelectorAll(".auth-login-button");
-const logoutButtons = document.querySelectorAll(".auth-logout-button");
-const voucherLinks = document.querySelectorAll(".auth-vouchers-link");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const vouchers = [];
@@ -37,9 +35,9 @@ function activateTab(target) {
 }
 
 function sessionName(session) {
-  return session?.user?.user_metadata?.full_name
-    || session?.user?.email
-    || "Conta Google conectada";
+  return (
+    session?.user?.user_metadata?.full_name || session?.user?.email || "Conta Google conectada"
+  );
 }
 
 function updateAuthUi(session) {
@@ -51,59 +49,13 @@ function updateAuthUi(session) {
     element.disabled = !isLoggedIn;
   });
 
-  loginButtons.forEach((button) => {
-    button.hidden = isLoggedIn;
-  });
-
-  logoutButtons.forEach((button) => {
-    button.hidden = !isLoggedIn;
-  });
-
-  voucherLinks.forEach((link) => {
-    link.hidden = !isLoggedIn;
-  });
-
+  // renderUserMenu tambem cuida da visibilidade dos botoes de login/logout e
+  // do link de vouchers no cabecalho.
   renderUserMenu(session);
 
   status.textContent = isLoggedIn
     ? `Logado como ${sessionName(session)}. A inscricao esta liberada.`
     : "Use o login no cabecalho para liberar a inscricao.";
-}
-
-async function loginWithGoogle() {
-  if (!supabase) {
-    status.textContent = "Supabase ainda nao esta configurado.";
-    return;
-  }
-
-  sessionStorage.setItem("trilha-return-tab", "inscricao");
-
-  const { error } = await supabase.auth.signInWithOAuth({
-    provider: "google",
-    options: {
-      redirectTo: `${window.location.origin}${window.location.pathname}`,
-    },
-  });
-
-  if (error) {
-    status.textContent = "Nao foi possivel iniciar o login com Google.";
-    console.error(error);
-  }
-}
-
-async function logoutFromGoogle() {
-  if (!supabase) return;
-
-  const { error } = await supabase.auth.signOut();
-  if (error) {
-    status.textContent = "Nao foi possivel sair da conta agora.";
-    console.error(error);
-    return;
-  }
-
-  vouchers.splice(0, vouchers.length);
-  await renderVouchers();
-  activateTab("inscricao");
 }
 
 async function initAuth() {
@@ -123,25 +75,36 @@ async function initAuth() {
     await loadSavedVouchers();
 
     const params = new URLSearchParams(window.location.search);
-    const returnTab = sessionStorage.getItem("trilha-return-tab");
-    sessionStorage.removeItem("trilha-return-tab");
+    const returnTab = sessionStorage.getItem(RETURN_TAB_KEY);
+    sessionStorage.removeItem(RETURN_TAB_KEY);
 
-    activateTab(params.get("vouchers") === "1" || returnTab === "vouchers" ? "vouchers" : "inscricao");
+    activateTab(
+      params.get("vouchers") === "1" || returnTab === "vouchers" ? "vouchers" : "inscricao",
+    );
   } else {
     activateTab("inscricao");
   }
 
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  supabase.auth.onAuthStateChange((event, session) => {
+    if (event === "TOKEN_REFRESHED") return;
+
     updateAuthUi(session);
 
-    if (session) {
+    if (!session) {
+      vouchersLoadedForUserId = null;
+      return;
+    }
+
+    // setTimeout evita chamar o Supabase dentro do callback de auth,
+    // o que pode causar deadlock (recomendacao da propria documentacao).
+    setTimeout(async () => {
       await loadSavedVouchers();
 
-      if (sessionStorage.getItem("trilha-return-tab")) {
-        sessionStorage.removeItem("trilha-return-tab");
+      if (sessionStorage.getItem(RETURN_TAB_KEY)) {
+        sessionStorage.removeItem(RETURN_TAB_KEY);
         activateTab("inscricao");
       }
-    }
+    }, 0);
   });
 }
 
@@ -150,13 +113,17 @@ function onlyDigits(value) {
 }
 
 function escapeHtml(value) {
-  return String(value || "").replace(/[&<>"']/g, (char) => ({
-    "&": "&amp;",
-    "<": "&lt;",
-    ">": "&gt;",
-    '"': "&quot;",
-    "'": "&#039;",
-  })[char]);
+  return String(value || "").replace(
+    /[&<>"']/g,
+    (char) =>
+      ({
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        '"': "&quot;",
+        "'": "&#039;",
+      })[char],
+  );
 }
 
 function voucherCode(data) {
@@ -317,11 +284,18 @@ async function renderVouchers() {
   });
 }
 
+let vouchersLoadedForUserId = null;
+
 async function loadSavedVouchers() {
   if (!isSupabaseConfigured || !currentSession) return;
 
+  // Evita recarregar (e re-renderizar) quando os vouchers deste usuario
+  // ja foram buscados — o onAuthStateChange dispara mais de uma vez no load.
+  if (vouchersLoadedForUserId === currentSession.user?.id) return;
+
   try {
     const savedVouchers = await listarMinhasInscricoes();
+    vouchersLoadedForUserId = currentSession.user?.id || null;
     vouchers.splice(0, vouchers.length, ...savedVouchers);
     await renderVouchers();
   } catch (error) {
@@ -356,12 +330,19 @@ tabButtons.forEach((button) => {
   button.addEventListener("click", () => activateTab(button.dataset.tabTarget));
 });
 
-loginButtons.forEach((button) => {
-  button.addEventListener("click", loginWithGoogle);
-});
-
-logoutButtons.forEach((button) => {
-  button.addEventListener("click", logoutFromGoogle);
+bindAuthButtons({
+  onLoginError: () => {
+    status.textContent = "Nao foi possivel iniciar o login com Google.";
+  },
+  onLogoutError: () => {
+    status.textContent = "Nao foi possivel sair da conta agora.";
+  },
+  afterLogout: async () => {
+    vouchersLoadedForUserId = null;
+    vouchers.splice(0, vouchers.length);
+    await renderVouchers();
+    activateTab("inscricao");
+  },
 });
 
 initUserMenuToggle();
@@ -376,6 +357,20 @@ form.addEventListener("submit", async (event) => {
   }
 
   if (!form.reportValidity()) return;
+
+  const telefoneDigits = onlyDigits(form.elements.telefone.value);
+  if (telefoneDigits.length < 10 || telefoneDigits.length > 11) {
+    status.textContent = "Informe um telefone valido com DDD (10 ou 11 digitos).";
+    form.elements.telefone.focus();
+    return;
+  }
+
+  const cpfDigits = onlyDigits(form.elements.cpf.value);
+  if (cpfDigits.length !== 11) {
+    status.textContent = "Informe um CPF valido com 11 digitos.";
+    form.elements.cpf.focus();
+    return;
+  }
 
   const data = formToData(form);
   status.textContent = "Gerando voucher...";

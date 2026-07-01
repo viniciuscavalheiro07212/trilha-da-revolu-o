@@ -24,22 +24,8 @@ create table if not exists public.inscricoes (
 
 alter table public.inscricoes enable row level security;
 
-create policy "Permitir envio publico de inscricoes"
-on public.inscricoes
-for insert
-to anon
-with check (
-  nome_completo is not null
-  and length(trim(nome_completo)) >= 3
-  and telefone is not null
-  and length(trim(telefone)) >= 8
-  and solidaria is true
-  and termos is true
-  and status = 'voucher-gerado'
-  and voucher_codigo like 'TR-%'
-  and voucher_emitido_em is not null
-);
-
+-- Inscricao exige login: anon nao tem policy nem privilegio de INSERT.
+drop policy if exists "Permitir envio publico de inscricoes" on public.inscricoes;
 revoke insert on table public.inscricoes from anon;
 grant select, insert on table public.inscricoes to authenticated;
 grant select, insert, update, delete on table public.inscricoes to service_role;

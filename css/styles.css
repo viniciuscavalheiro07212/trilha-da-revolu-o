@@ -101,7 +101,13 @@ button.site-header-08 {
   display:none!important;
 }
 .auth-user {
+  /* Escondido por padrao: o runtime da home re-renderiza o cabecalho a partir
+     do template e descarta o atributo hidden aplicado via JS. So aparece com
+     a classe que renderUserMenu aplica quando ha sessao. */
   position:relative;
+  display:none;
+}
+.auth-user.is-authenticated {
   display:inline-flex;
 }
 .auth-user-trigger {

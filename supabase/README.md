@@ -1,7 +1,5 @@
 # Supabase
 
-Esta pasta prepara a base para futuras funcionalidades da home page.
-
 ## Variaveis
 
 Copie `.env.example` para `.env` e preencha:
@@ -11,14 +9,20 @@ Copie `.env.example` para `.env` e preencha:
 
 Nunca coloque `service_role` ou secret key no frontend.
 
-## SQL inicial
+## Migracoes
 
-O arquivo `sql/001_inscricoes.sql` e um rascunho seguro para uma futura tabela de inscricoes.
-Ele ainda nao foi aplicado no Supabase.
+As mudancas de banco vivem em `migrations/`, uma por arquivo, com prefixo de
+data (`YYYYMMDDHHMMSS_nome.sql`) — mesmo padrao do Supabase CLI.
 
-Antes de publicar formularios reais, revise:
+Regras:
 
-- Campos obrigatorios do evento
-- Politicas RLS
-- Protecao contra spam
-- Fluxo de confirmacao de pagamento
+- **Nunca edite uma migracao ja aplicada.** Mudou algo no banco? Crie um novo
+  arquivo datado com apenas o delta (`alter table ...`, `create policy ...`).
+- Aplique cada arquivo novo no SQL Editor do projeto Supabase (ou via
+  `supabase db push` se o CLI estiver linkado).
+
+`20260701000000_inscricoes_baseline.sql` documenta o estado atual do schema:
+tabela `inscricoes` com RLS (INSERT/SELECT apenas para o proprio usuario
+autenticado; nada para `anon`) e a funcao `criar_inscricao_publica`, usada
+pelo formulario de inscricao. O arquivo e re-executavel (guardas
+`if not exists` / `drop ... if exists`).

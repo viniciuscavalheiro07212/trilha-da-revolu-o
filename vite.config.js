@@ -1,5 +1,5 @@
 import { defineConfig } from "vite";
-import { resolve } from "node:path";
+import { fileURLToPath, URL } from "node:url";
 
 export default defineConfig({
   appType: "mpa",
@@ -8,8 +8,8 @@ export default defineConfig({
     emptyOutDir: true,
     rollupOptions: {
       input: {
-        main: resolve(__dirname, "index.html"),
-        inscricao: resolve(__dirname, "inscricao.html"),
+        main: fileURLToPath(new URL("./index.html", import.meta.url)),
+        inscricao: fileURLToPath(new URL("./inscricao.html", import.meta.url)),
       },
     },
   },

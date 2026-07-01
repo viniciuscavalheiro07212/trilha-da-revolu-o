@@ -2,11 +2,16 @@
 // Quando logado, o cabecalho mostra o nome + avatar; ao clicar, abre um
 // dropdown com "Meus vouchers" e "Sair".
 
+// undefined = renderUserMenu ainda nao rodou; null = deslogado.
+let lastSession;
+
 function sessionName(session) {
-  return session?.user?.user_metadata?.full_name
-    || session?.user?.user_metadata?.name
-    || session?.user?.email
-    || "Minha conta";
+  return (
+    session?.user?.user_metadata?.full_name ||
+    session?.user?.user_metadata?.name ||
+    session?.user?.email ||
+    "Minha conta"
+  );
 }
 
 function firstName(name) {
@@ -15,10 +20,55 @@ function firstName(name) {
 
 export function closeUserMenus() {
   document.querySelectorAll(".auth-user-menu").forEach((menu) => {
-    menu.hidden = true;
+    if (!menu.hidden) menu.hidden = true;
   });
   document.querySelectorAll(".auth-user-trigger").forEach((trigger) => {
-    trigger.setAttribute("aria-expanded", "false");
+    if (trigger.getAttribute("aria-expanded") !== "false") {
+      trigger.setAttribute("aria-expanded", "false");
+    }
+  });
+}
+
+// Aplica o estado de auth do cabecalho (menu de usuario, botoes de login/
+// logout e link de vouchers). O runtime da home re-renderiza o cabecalho a
+// partir do template <x-dc> depois deste script, descartando atributos e
+// classes aplicados via JS — por isso o estado vive em lastSession e esta
+// funcao e re-executada pelo MutationObserver apos cada re-renderizacao.
+// Idempotente: so escreve no DOM quando o valor difere, para nao realimentar
+// o proprio observer.
+function applyUserMenuState() {
+  if (lastSession === undefined) return;
+
+  const isLoggedIn = Boolean(lastSession);
+
+  document.querySelectorAll(".auth-user").forEach((menu) => {
+    menu.classList.toggle("is-authenticated", isLoggedIn);
+    if (menu.hidden === isLoggedIn) menu.hidden = !isLoggedIn;
+  });
+
+  document.querySelectorAll(".auth-login-button").forEach((button) => {
+    if (button.hidden !== isLoggedIn) button.hidden = isLoggedIn;
+  });
+  document.querySelectorAll(".auth-logout-button").forEach((button) => {
+    if (button.hidden === isLoggedIn) button.hidden = !isLoggedIn;
+  });
+  document.querySelectorAll(".auth-vouchers-link").forEach((link) => {
+    if (link.hidden === isLoggedIn) link.hidden = !isLoggedIn;
+  });
+
+  if (!isLoggedIn) {
+    closeUserMenus();
+    return;
+  }
+
+  const name = firstName(sessionName(lastSession));
+  const initial = name.charAt(0).toUpperCase();
+
+  document.querySelectorAll(".auth-user-name").forEach((el) => {
+    if (el.textContent !== name) el.textContent = name;
+  });
+  document.querySelectorAll(".auth-user-avatar").forEach((el) => {
+    if (el.textContent !== initial) el.textContent = initial;
   });
 }
 
@@ -52,27 +102,18 @@ export function initUserMenuToggle() {
   document.addEventListener("keydown", (event) => {
     if (event.key === "Escape") closeUserMenus();
   });
+
+  // Re-aplica o estado quando o runtime da home re-renderiza o cabecalho
+  // (nos recriados ou atributos hidden/class resetados pelo template).
+  new MutationObserver(() => applyUserMenuState()).observe(document.body, {
+    childList: true,
+    subtree: true,
+    attributes: true,
+    attributeFilter: ["hidden", "class"],
+  });
 }
 
 export function renderUserMenu(session) {
-  const isLoggedIn = Boolean(session);
-
-  document.querySelectorAll(".auth-user").forEach((menu) => {
-    menu.hidden = !isLoggedIn;
-  });
-
-  if (!isLoggedIn) {
-    closeUserMenus();
-    return;
-  }
-
-  const name = firstName(sessionName(session));
-  const initial = name.charAt(0).toUpperCase();
-
-  document.querySelectorAll(".auth-user-name").forEach((el) => {
-    el.textContent = name;
-  });
-  document.querySelectorAll(".auth-user-avatar").forEach((el) => {
-    el.textContent = initial;
-  });
+  lastSession = session || null;
+  applyUserMenuState();
 }

@@ -3,18 +3,26 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "vite --host 127.0.0.1",
     "build": "vite build",
-    "postbuild": "node scripts/copy-static-assets.js",
     "preview": "vite preview --host 127.0.0.1",
-    "serve:dist": "node scripts/serve-dist.js"
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check ."
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.75.1",
     "qrcode": "^1.5.4"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
+    "eslint": "^10.6.0",
+    "globals": "^17.7.0",
+    "prettier": "^3.9.4",
     "vite": "^7.0.0"
   }
 }
