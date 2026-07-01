@@ -832,17 +832,18 @@ button.site-header-08 {
 }
 .start-band-09 {
   position:absolute;
-  top:clamp(20px,4vw,40px);
+  top:50%;
   right:clamp(20px,4vw,48px);
+  transform:translateY(-50%);
   z-index:3;
-  max-width:300px;
+  max-width:360px;
   display:flex;
   flex-direction:column;
-  gap:8px;
-  padding:18px 20px;
+  gap:10px;
+  padding:24px 26px;
   background:rgba(11,11,12,.78);
   border:1px solid rgba(244,194,13,.5);
-  border-radius:14px;
+  border-radius:16px;
   backdrop-filter:blur(6px);
   box-shadow:0 16px 40px -14px rgba(0,0,0,.8);
   text-decoration:none;
@@ -850,7 +851,7 @@ button.site-header-08 {
 }
 .start-band-09:hover {
   border-color:#f4c20d;
-  transform:translateY(-2px);
+  transform:translateY(calc(-50% - 2px));
 }
 .start-band-10 {
   display:flex;
@@ -860,31 +861,31 @@ button.site-header-08 {
   font-weight:700;
   letter-spacing:.14em;
   text-transform:uppercase;
-  font-size:12px;
+  font-size:14px;
   color:#f4c20d;
 }
 .start-band-11 {
-  font-size:18px;
+  font-size:22px;
 }
 .start-band-12 {
   font-family:'Barlow Condensed',sans-serif;
   font-weight:800;
   font-style:italic;
   text-transform:uppercase;
-  font-size:19px;
+  font-size:23px;
   line-height:1.05;
   color:#fff;
 }
 .start-band-13 {
   font-family:'Oswald',sans-serif;
   font-weight:300;
-  font-size:13px;
-  line-height:1.45;
+  font-size:15px;
+  line-height:1.5;
   color:#cfcfcf;
 }
 .start-band-14 {
   align-self:flex-start;
-  margin-top:2px;
+  margin-top:4px;
   display:inline-flex;
   align-items:center;
   gap:6px;
@@ -894,9 +895,9 @@ button.site-header-08 {
   font-weight:800;
   letter-spacing:.04em;
   text-transform:uppercase;
-  font-size:13px;
-  padding:8px 14px;
-  border-radius:7px;
+  font-size:15px;
+  padding:10px 16px;
+  border-radius:8px;
 }
 .final-cta-01 {
   position:relative;
@@ -1151,6 +1152,7 @@ button.site-header-08 {
   .start-band-01 { flex-direction:column; align-items:stretch; }
   .start-band-09 {
     position:static;
+    transform:none;
     max-width:none;
     margin:0 clamp(24px,5vw,72px) clamp(36px,6vw,60px);
   }
