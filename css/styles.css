@@ -1081,26 +1081,90 @@ button.site-header-08 {
   border-radius:9px;
   box-shadow:0 12px 30px -8px rgba(244,194,13,.6);
 }
-.final-cta-11 {
+.final-cta-cartaz {
   display:flex;
   justify-content:center;
-  flex-wrap:wrap;
-  gap:14px;
   margin-top:40px;
 }
-.final-cta-12 {
-  height:420px;
-  aspect-ratio:854/1280;
+.final-cta-cartaz img {
+  width:min(100%,400px);
+  height:auto;
+  display:block;
   border-radius:14px;
-  background:url("../assets/galeria-grupo-trilha.jpg") center/cover no-repeat;
+  border:1px solid rgba(255,255,255,.08);
+  box-shadow:0 18px 44px -14px rgba(0,0,0,.7);
+}
+.foto-carousel {
+  position:relative;
+  max-width:640px;
+  margin:28px auto 0;
+}
+.foto-carousel-track {
+  display:flex;
+  gap:14px;
+  overflow-x:auto;
+  scroll-snap-type:x mandatory;
+  border-radius:14px;
+  scrollbar-width:none;
+}
+.foto-carousel-track::-webkit-scrollbar { display:none; }
+.foto-carousel-slide {
+  flex:0 0 100%;
+  scroll-snap-align:start;
+  height:420px;
+  border-radius:14px;
+  overflow:hidden;
   border:1px solid rgba(255,255,255,.08);
 }
-.final-cta-13 {
-  height:420px;
-  aspect-ratio:720/737;
-  border-radius:14px;
-  background:url("../assets/galeria-piloto-lama.jpg") center/cover no-repeat;
-  border:1px solid rgba(255,255,255,.08);
+.foto-carousel-slide img {
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+.foto-carousel-arrow {
+  position:absolute;
+  top:50%;
+  transform:translateY(-50%);
+  z-index:2;
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  border:1px solid rgba(255,255,255,.15);
+  cursor:pointer;
+  background:rgba(0,0,0,.55);
+  color:#f4c20d;
+  font-size:26px;
+  line-height:1;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:0 0 3px;
+  transition:background .2s;
+}
+.foto-carousel-arrow:hover { background:rgba(0,0,0,.85); }
+.foto-carousel-prev { left:12px; }
+.foto-carousel-next { right:12px; }
+.foto-carousel-dots {
+  display:flex;
+  justify-content:center;
+  gap:8px;
+  margin-top:14px;
+  min-height:9px;
+}
+.foto-carousel-dot {
+  width:9px;
+  height:9px;
+  border-radius:50%;
+  border:none;
+  padding:0;
+  cursor:pointer;
+  background:rgba(255,255,255,.25);
+  transition:background .2s, transform .2s;
+}
+.foto-carousel-dot.is-active {
+  background:#f4c20d;
+  transform:scale(1.25);
 }
 .site-footer-01 {
   background:#070708;
@@ -1206,8 +1270,7 @@ button.site-header-08 {
 /* ---------- Tablet: ate 1024px (ajustes leves) ---------- */
 @media (max-width:1024px) {
   .hero-01 { min-height:auto; }
-  .final-cta-12,
-  .final-cta-13 { height:340px; }
+  .foto-carousel-slide { height:340px; }
 }
 
 /* ---------- Mobile: ate 768px (reorganiza o layout em coluna) ---------- */
@@ -1236,12 +1299,13 @@ button.site-header-08 {
   /* Grade de beneficios: 5 -> 3 colunas */
   .registration-18 { grid-template-columns:repeat(3,1fr); }
 
-  /* CTA final: botoes empilhados e imagens uma sobre a outra */
+  /* CTA final: botoes empilhados e carrossel mais baixo */
   .final-cta-09 { flex-direction:column; align-items:stretch; }
   .final-cta-10 { width:100%; justify-content:center; }
-  .final-cta-11 { flex-direction:column; align-items:center; }
-  .final-cta-12,
-  .final-cta-13 { height:auto; width:min(100%,380px); }
+  .foto-carousel-slide { height:320px; }
+  .foto-carousel-arrow { width:38px; height:38px; font-size:22px; }
+  .foto-carousel-prev { left:8px; }
+  .foto-carousel-next { right:8px; }
 
   /* Rodape centralizado */
   .site-footer-06 { flex-direction:column; text-align:center; }
@@ -1287,9 +1351,8 @@ button.site-header-08 {
   /* Espacamento das estatisticas */
   .event-stats-05 { gap:22px; }
 
-  /* Imagens do CTA final menores */
-  .final-cta-12,
-  .final-cta-13 { width:min(100%,320px); }
+  /* Carrossel do CTA final mais compacto */
+  .foto-carousel-slide { height:260px; }
 
   /* Botao flutuante do WhatsApp menor e mais no canto */
   .floating-whatsapp-01 { width:52px; height:52px; font-size:26px; right:16px; bottom:16px; }

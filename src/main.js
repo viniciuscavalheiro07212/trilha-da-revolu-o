@@ -1,11 +1,13 @@
 import { supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 import { bindAuthButtons, loginWithGoogle } from "./auth.js";
+import { initCarousel } from "./carousel.js";
 
 const signupUrl = `${window.location.origin}/inscricao.html`;
 
 initUserMenuToggle();
 bindAuthButtons();
+initCarousel();
 
 // Qualquer link/botao que leve a pagina de inscricao: sem login, vai direto
 // para o login com Google. Delegation no document porque o runtime da home
