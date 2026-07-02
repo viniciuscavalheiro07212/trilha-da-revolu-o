@@ -80,9 +80,7 @@ function syncDots(parts) {
       .join("");
   }
   const active = currentIndex(parts);
-  [...dotsBox.children].forEach((dot, i) =>
-    dot.classList.toggle("is-active", i === active),
-  );
+  [...dotsBox.children].forEach((dot, i) => dot.classList.toggle("is-active", i === active));
 }
 
 export function initCarousel() {
