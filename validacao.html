@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Validacao | VIII Trilha da Revolucao</title>
+  <meta name="description" content="App de validacao de vouchers da VIII Trilha da Revolucao — escaneie o QR Code do voucher no credenciamento e acompanhe inscricoes e lucro.">
+  <meta name="theme-color" content="#0b0b0c">
+  <link rel="manifest" href="/manifest.webmanifest">
+  <link rel="apple-touch-icon" href="/icons/icon-192.png">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/inscricao.css">
+  <link rel="stylesheet" href="css/validacao.css">
+  <script type="module" src="/src/validacao.js"></script>
+</head>
+<body>
+  <main class="signup-page validation-page">
+    <header class="signup-header">
+      <a class="signup-brand" href="index.html" aria-label="Voltar para a home">
+        <span class="signup-brand-mark"></span>
+        <span>
+          <strong>VIII Trilha</strong>
+          <small>da Revolucao</small>
+        </span>
+      </a>
+      <nav class="signup-nav">
+        <a href="inscricao.html">Inscricao</a>
+        <button type="button" class="header-auth-button auth-login-button">Login</button>
+        <div class="auth-user" hidden>
+          <button type="button" class="auth-user-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="auth-user-avatar" aria-hidden="true"></span>
+            <span class="auth-user-name"></span>
+            <span class="auth-user-caret" aria-hidden="true">▾</span>
+          </button>
+          <div class="auth-user-menu" hidden>
+            <a href="inscricao.html?vouchers=1" class="auth-user-item auth-vouchers-link">Meus vouchers</a>
+            <button type="button" class="auth-user-item auth-logout-button">Sair</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <section class="signup-hero validation-hero">
+      <div class="signup-hero-copy">
+        <p class="signup-kicker">Credenciamento</p>
+        <h1>Validacao de vouchers</h1>
+        <p>Escaneie o QR Code do voucher do participante ou digite o codigo. Acompanhe todas as inscricoes e o lucro do evento em tempo real.</p>
+      </div>
+    </section>
+
+    <!-- Portao de acesso: mostrado enquanto nao ha login de validador. -->
+    <section class="login-layout tab-panel is-active" id="access-gate">
+      <div class="login-panel">
+        <div class="login-copy">
+          <strong>Acesso restrito</strong>
+          <p>Esta area e exclusiva da equipe de credenciamento. Entre com a conta Google autorizada para liberar o validador.</p>
+        </div>
+        <p class="login-state" id="gate-status" role="status">Verificando acesso...</p>
+        <div class="form-actions">
+          <button type="button" class="auth-login-button" id="gate-login">Entrar com Google</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- App do validador: liberado apos confirmar que o e-mail esta na lista. -->
+    <div id="validator-app" hidden>
+      <nav class="signup-tabs" aria-label="Abas da validacao">
+        <button class="signup-tab is-active" type="button" data-tab-target="validar">Validar</button>
+        <button class="signup-tab" type="button" data-tab-target="vouchers">Vouchers</button>
+        <button class="signup-tab" type="button" data-tab-target="lucro">Lucro</button>
+      </nav>
+
+      <section class="validation-layout tab-panel is-active" id="tab-validar">
+        <div class="scanner-panel">
+          <div class="form-section-heading">
+            <span>Scanner</span>
+            <strong>QR Code do voucher</strong>
+          </div>
+          <div class="scanner-frame" id="scanner-frame">
+            <video id="scanner-video" muted playsinline></video>
+            <p class="scanner-hint" id="scanner-hint">Camera desligada. Toque em "Ligar camera" para escanear.</p>
+          </div>
+          <div class="form-actions scanner-actions">
+            <button type="button" id="toggle-camera">Ligar camera</button>
+          </div>
+          <form class="manual-form" id="manual-form">
+            <label>
+              Ou digite o codigo do voucher
+              <input name="codigo" id="manual-code" placeholder="TR-XXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
+            </label>
+            <button type="submit">Validar codigo</button>
+          </form>
+          <p class="form-note" id="scan-status" role="status"></p>
+        </div>
+        <div class="result-panel" id="result-panel" aria-live="polite">
+          <div class="result-empty">
+            <span>Resultado</span>
+            <strong>Aguardando leitura</strong>
+            <p>O resultado da validacao aparece aqui: liberado, ja validado ou voucher nao encontrado.</p>
+          </div>
+        </div>
+      </section>
+
+      <section class="table-layout tab-panel" id="tab-vouchers">
+        <div class="table-panel">
+          <div class="form-section-heading">
+            <span>Vouchers</span>
+            <strong>Todas as inscricoes</strong>
+          </div>
+          <div class="table-toolbar">
+            <input type="search" id="voucher-search" placeholder="Buscar por nome, codigo ou grupo" autocomplete="off">
+            <button type="button" id="refresh-vouchers">Atualizar</button>
+          </div>
+          <div class="table-counters" id="voucher-counters"></div>
+          <div class="table-scroll">
+            <table class="data-table" id="voucher-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Voucher</th>
+                  <th>Nome</th>
+                  <th>Grupo</th>
+                  <th>Camiseta</th>
+                  <th>Situacao</th>
+                  <th>Validado por</th>
+                </tr>
+              </thead>
+              <tbody id="voucher-rows"></tbody>
+            </table>
+          </div>
+          <p class="form-note" id="table-status" role="status"></p>
+        </div>
+      </section>
+
+      <section class="table-layout tab-panel" id="tab-lucro">
+        <div class="table-panel">
+          <div class="form-section-heading">
+            <span>Lucro</span>
+            <strong>Receita do evento</strong>
+          </div>
+          <form class="price-form" id="price-form">
+            <label>
+              Valor da inscricao (R$)
+              <input type="number" id="price-input" min="0" step="0.01" inputmode="decimal">
+            </label>
+            <button type="submit">Salvar valor</button>
+          </form>
+          <div class="profit-cards" id="profit-cards"></div>
+          <div class="table-scroll">
+            <table class="data-table" id="profit-table">
+              <thead>
+                <tr>
+                  <th>Descricao</th>
+                  <th>Quantidade</th>
+                  <th>Valor</th>
+                </tr>
+              </thead>
+              <tbody id="profit-rows"></tbody>
+            </table>
+          </div>
+          <p class="form-note" id="profit-status" role="status"></p>
+        </div>
+      </section>
+    </div>
+  </main>
+</body>
+</html>
