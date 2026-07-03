@@ -247,8 +247,10 @@ function emptyVoucher() {
 }
 
 function camisetaMessage(data) {
+  const tamanho = data.tamanho_camiseta ? ` (tamanho ${data.tamanho_camiseta})` : "";
+
   if (data.camiseta_garantida === true) {
-    return "Camiseta garantida: este voucher esta entre os 200 primeiros inscritos.";
+    return `Camiseta garantida${tamanho}: este voucher esta entre os 200 primeiros inscritos. Retire a camiseta no credenciamento.`;
   }
 
   if (data.camiseta_garantida === false) {
@@ -309,7 +311,13 @@ async function voucherCard(data, index) {
             ${field("Largada", eventInfo.largada)}
             ${field("Investimento", eventInfo.investimento)}
           </div>
-          <div class="voucher-alert ${data.camiseta_garantida === false ? "is-over" : ""}">
+          <div class="voucher-alert ${
+            data.camiseta_garantida === true
+              ? "is-shirt"
+              : data.camiseta_garantida === false
+                ? "is-over"
+                : ""
+          }">
             ${escapeHtml(camisetaMessage(data))}
           </div>
           <div class="voucher-alert">

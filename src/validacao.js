@@ -262,6 +262,13 @@ function resultMeta(resultado) {
 function renderResult(dados) {
   const meta = resultMeta(dados.resultado);
 
+  const camiseta =
+    dados.resultado === "nao-encontrado"
+      ? ""
+      : dados.camiseta_garantida
+        ? `<div class="result-shirt is-yes">Entregar camiseta — tamanho ${escapeHtml(dados.tamanho_camiseta || "-")} (entre os 200 primeiros)</div>`
+        : `<div class="result-shirt is-no">Sem camiseta — fora dos 200 primeiros vouchers</div>`;
+
   const detalhes =
     dados.resultado === "nao-encontrado"
       ? ""
@@ -290,6 +297,7 @@ function renderResult(dados) {
       <span class="result-badge">${meta.titulo}</span>
       <strong class="result-code">${escapeHtml(dados.voucher_codigo)}</strong>
       <p>${meta.detalhe}</p>
+      ${camiseta}
       ${detalhes}
     </div>
   `;
@@ -339,11 +347,13 @@ function filteredInscricoes() {
 
 function renderTable() {
   const validadas = inscricoes.filter((item) => item.validado_em).length;
+  const comCamiseta = inscricoes.filter((item) => item.camiseta_garantida).length;
 
   voucherCounters.innerHTML = `
     <div><span>Total</span><strong>${inscricoes.length}</strong></div>
     <div><span>Validados</span><strong>${validadas}</strong></div>
     <div><span>Pendentes</span><strong>${inscricoes.length - validadas}</strong></div>
+    <div><span>Com camiseta</span><strong>${comCamiseta}/200</strong></div>
   `;
 
   const lista = filteredInscricoes();
