@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Validacao | VIII Trilha da Revolucao</title>
   <meta name="description" content="App de validacao de vouchers da VIII Trilha da Revolucao — escaneie o QR Code do voucher no credenciamento e acompanhe inscricoes e lucro.">
   <meta name="theme-color" content="#0b0b0c">
@@ -10,22 +10,20 @@
   <link rel="apple-touch-icon" href="/icons/icon-192.png">
   <link rel="stylesheet" href="css/fonts.css">
   <link rel="stylesheet" href="css/styles.css">
-  <link rel="stylesheet" href="css/inscricao.css">
   <link rel="stylesheet" href="css/validacao.css">
   <script type="module" src="/src/validacao.js"></script>
 </head>
-<body>
-  <main class="signup-page validation-page">
-    <header class="signup-header">
-      <a class="signup-brand" href="index.html" aria-label="Voltar para a home">
-        <span class="signup-brand-mark"></span>
-        <span>
-          <strong>VIII Trilha</strong>
-          <small>da Revolucao</small>
+<body class="validation-body">
+  <main class="app-shell">
+    <header class="app-bar">
+      <a class="app-brand" href="index.html" aria-label="Voltar para a home">
+        <span class="app-brand-mark" aria-hidden="true"></span>
+        <span class="app-brand-text">
+          <strong>Validador</strong>
+          <small>VIII Trilha da Revolucao</small>
         </span>
       </a>
-      <nav class="signup-nav">
-        <a href="inscricao.html">Inscricao</a>
+      <div class="app-bar-auth">
         <button type="button" class="header-auth-button auth-login-button">Login</button>
         <div class="auth-user" hidden>
           <button type="button" class="auth-user-trigger" aria-haspopup="true" aria-expanded="false">
@@ -38,81 +36,75 @@
             <button type="button" class="auth-user-item auth-logout-button">Sair</button>
           </div>
         </div>
-      </nav>
+      </div>
     </header>
 
-    <section class="signup-hero validation-hero">
-      <div class="signup-hero-copy">
-        <p class="signup-kicker">Credenciamento</p>
-        <h1>Validacao de vouchers</h1>
-        <p>Escaneie o QR Code do voucher do participante ou digite o codigo. Acompanhe todas as inscricoes e o lucro do evento em tempo real.</p>
-      </div>
-    </section>
-
     <!-- Portao de acesso: mostrado enquanto nao ha login de validador. -->
-    <section class="login-layout tab-panel is-active" id="access-gate">
-      <div class="login-panel">
-        <div class="login-copy">
-          <strong>Acesso restrito</strong>
-          <p>Esta area e exclusiva da equipe de credenciamento. Entre com a conta Google autorizada para liberar o validador.</p>
-        </div>
-        <p class="login-state" id="gate-status" role="status">Verificando acesso...</p>
-        <div class="form-actions">
-          <button type="button" class="auth-login-button" id="gate-login">Entrar com Google</button>
-        </div>
+    <section class="gate is-active" id="access-gate">
+      <div class="gate-card">
+        <span class="gate-mark" aria-hidden="true"></span>
+        <p class="gate-kicker">Credenciamento oficial</p>
+        <h1 class="gate-title">Acesso restrito</h1>
+        <p class="gate-copy">Area exclusiva da equipe de credenciamento. Entre com a conta Google autorizada para liberar o validador.</p>
+        <p class="gate-status" id="gate-status" role="status">Verificando acesso...</p>
+        <button type="button" class="button-primary auth-login-button" id="gate-login">
+          Entrar com Google
+        </button>
       </div>
     </section>
 
     <!-- App do validador: liberado apos confirmar que o e-mail esta na lista. -->
     <div id="validator-app" hidden>
-      <nav class="signup-tabs" aria-label="Abas da validacao">
-        <button class="signup-tab is-active" type="button" data-tab-target="validar">Validar</button>
-        <button class="signup-tab" type="button" data-tab-target="vouchers">Vouchers</button>
-        <button class="signup-tab" type="button" data-tab-target="lucro">Lucro</button>
-      </nav>
+      <section class="app-screen is-active" id="tab-validar">
+        <header class="screen-head">
+          <p class="screen-kicker">Credenciamento</p>
+          <h1>Validar voucher</h1>
+        </header>
 
-      <section class="validation-layout tab-panel is-active" id="tab-validar">
-        <div class="scanner-panel">
-          <div class="form-section-heading">
-            <span>Scanner</span>
-            <strong>QR Code do voucher</strong>
-          </div>
+        <div class="app-card scanner-card">
           <div class="scanner-frame" id="scanner-frame">
             <video id="scanner-video" muted playsinline></video>
-            <p class="scanner-hint" id="scanner-hint">Camera desligada. Toque em "Ligar camera" para escanear.</p>
+            <span class="scanner-corners" aria-hidden="true"></span>
+            <p class="scanner-hint" id="scanner-hint">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><rect x="8" y="8" width="8" height="8" rx="1"/></svg>
+              Camera desligada
+            </p>
           </div>
-          <div class="form-actions scanner-actions">
-            <button type="button" id="toggle-camera">Ligar camera</button>
-          </div>
+          <button type="button" class="button-primary" id="toggle-camera">Ligar camera</button>
           <form class="manual-form" id="manual-form">
-            <label>
-              Ou digite o codigo do voucher
+            <label for="manual-code">Ou digite o codigo</label>
+            <div class="manual-row">
               <input name="codigo" id="manual-code" placeholder="TR-XXXXXX" autocomplete="off" autocapitalize="characters" spellcheck="false">
-            </label>
-            <button type="submit">Validar codigo</button>
+              <button type="submit" class="button-secondary">Validar</button>
+            </div>
           </form>
-          <p class="form-note" id="scan-status" role="status"></p>
+          <p class="app-status" id="scan-status" role="status"></p>
         </div>
+
         <div class="result-panel" id="result-panel" aria-live="polite">
           <div class="result-empty">
             <span>Resultado</span>
             <strong>Aguardando leitura</strong>
-            <p>O resultado da validacao aparece aqui: liberado, ja validado ou voucher nao encontrado.</p>
+            <p>O resultado aparece aqui: liberado, ja validado ou nao encontrado.</p>
           </div>
         </div>
       </section>
 
-      <section class="table-layout tab-panel" id="tab-vouchers">
-        <div class="table-panel">
-          <div class="form-section-heading">
-            <span>Vouchers</span>
-            <strong>Todas as inscricoes</strong>
-          </div>
+      <section class="app-screen" id="tab-vouchers">
+        <header class="screen-head">
+          <p class="screen-kicker">Inscricoes</p>
+          <h1>Vouchers</h1>
+        </header>
+
+        <div class="stat-row" id="voucher-counters"></div>
+
+        <div class="app-card table-card">
           <div class="table-toolbar">
-            <input type="search" id="voucher-search" placeholder="Buscar por nome, codigo ou grupo" autocomplete="off">
-            <button type="button" id="refresh-vouchers">Atualizar</button>
+            <input type="search" id="voucher-search" placeholder="Buscar nome, codigo ou grupo" autocomplete="off">
+            <button type="button" class="button-secondary" id="refresh-vouchers" aria-label="Atualizar lista">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+            </button>
           </div>
-          <div class="table-counters" id="voucher-counters"></div>
           <div class="table-scroll">
             <table class="data-table" id="voucher-table">
               <thead>
@@ -129,39 +121,59 @@
               <tbody id="voucher-rows"></tbody>
             </table>
           </div>
-          <p class="form-note" id="table-status" role="status"></p>
+          <p class="app-status" id="table-status" role="status"></p>
         </div>
       </section>
 
-      <section class="table-layout tab-panel" id="tab-lucro">
-        <div class="table-panel">
-          <div class="form-section-heading">
-            <span>Lucro</span>
-            <strong>Receita do evento</strong>
-          </div>
+      <section class="app-screen" id="tab-lucro">
+        <header class="screen-head">
+          <p class="screen-kicker">Financeiro</p>
+          <h1>Lucro</h1>
+        </header>
+
+        <div class="profit-cards" id="profit-cards"></div>
+
+        <div class="app-card">
           <form class="price-form" id="price-form">
-            <label>
-              Valor da inscricao (R$)
+            <label for="price-input">Valor da inscricao (R$)</label>
+            <div class="manual-row">
               <input type="number" id="price-input" min="0" step="0.01" inputmode="decimal">
-            </label>
-            <button type="submit">Salvar valor</button>
+              <button type="submit" class="button-secondary">Salvar</button>
+            </div>
           </form>
-          <div class="profit-cards" id="profit-cards"></div>
+          <p class="app-status" id="profit-status" role="status"></p>
+        </div>
+
+        <div class="app-card table-card">
           <div class="table-scroll">
             <table class="data-table" id="profit-table">
               <thead>
                 <tr>
                   <th>Descricao</th>
-                  <th>Quantidade</th>
+                  <th>Qtde</th>
                   <th>Valor</th>
                 </tr>
               </thead>
               <tbody id="profit-rows"></tbody>
             </table>
           </div>
-          <p class="form-note" id="profit-status" role="status"></p>
         </div>
       </section>
+
+      <nav class="bottom-nav" aria-label="Navegacao do validador">
+        <button type="button" class="nav-item is-active" data-tab-target="validar">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 8V5a2 2 0 0 1 2-2h3"/><path d="M16 3h3a2 2 0 0 1 2 2v3"/><path d="M21 16v3a2 2 0 0 1-2 2h-3"/><path d="M8 21H5a2 2 0 0 1-2-2v-3"/><path d="M4 12h16"/></svg>
+          <span>Validar</span>
+        </button>
+        <button type="button" class="nav-item" data-tab-target="vouchers">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 9V7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v2a2 2 0 0 0 0 6v2a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-2a2 2 0 0 0 0-6Z"/><path d="M13 5v2"/><path d="M13 17v2"/><path d="M13 11v2"/></svg>
+          <span>Vouchers</span>
+        </button>
+        <button type="button" class="nav-item" data-tab-target="lucro">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 3v16a2 2 0 0 0 2 2h16"/><path d="M7 15l4-5 4 3 5-7"/></svg>
+          <span>Lucro</span>
+        </button>
+      </nav>
     </div>
   </main>
 </body>

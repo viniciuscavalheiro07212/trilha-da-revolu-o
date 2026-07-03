@@ -16,9 +16,10 @@ const gateStatus = document.querySelector("#gate-status");
 const gateLogin = document.querySelector("#gate-login");
 const app = document.querySelector("#validator-app");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
-const tabPanels = app.querySelectorAll(".tab-panel");
+const tabPanels = app.querySelectorAll(".app-screen");
 
 const video = document.querySelector("#scanner-video");
+const scannerFrame = document.querySelector("#scanner-frame");
 const scannerHint = document.querySelector("#scanner-hint");
 const toggleCameraButton = document.querySelector("#toggle-camera");
 const manualForm = document.querySelector("#manual-form");
@@ -187,6 +188,7 @@ async function startCamera() {
     await scanner.start();
     cameraLigada = true;
     scannerHint.hidden = true;
+    scannerFrame.classList.add("is-live");
     toggleCameraButton.textContent = "Desligar camera";
     scanStatus.textContent = "Aponte a camera para o QR Code do voucher.";
   } catch (error) {
@@ -200,6 +202,7 @@ function stopCamera() {
   if (scanner) scanner.stop();
   cameraLigada = false;
   scannerHint.hidden = false;
+  scannerFrame.classList.remove("is-live");
   toggleCameraButton.textContent = "Ligar camera";
 }
 
@@ -397,8 +400,8 @@ function renderProfit() {
   const receitaConfirmada = validadas * valorInscricao;
 
   profitCards.innerHTML = `
+    <div class="profit-card is-hero"><span>Receita confirmada</span><strong>${brl.format(receitaConfirmada)}</strong></div>
     <div class="profit-card"><span>Receita prevista</span><strong>${brl.format(receitaPrevista)}</strong></div>
-    <div class="profit-card is-ok"><span>Receita confirmada</span><strong>${brl.format(receitaConfirmada)}</strong></div>
     <div class="profit-card"><span>A confirmar</span><strong>${brl.format(receitaPrevista - receitaConfirmada)}</strong></div>
   `;
 
