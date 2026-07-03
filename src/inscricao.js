@@ -112,6 +112,80 @@ function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function setFieldError(element, message) {
+  const label = element.closest("label");
+  if (!label) return;
+
+  label.classList.add("is-invalid");
+
+  const error = document.createElement("span");
+  error.className = "field-error";
+  error.textContent = message;
+  label.appendChild(error);
+}
+
+function clearFieldErrors() {
+  form.querySelectorAll(".field-error").forEach((element) => element.remove());
+  form.querySelectorAll(".is-invalid").forEach((element) => element.classList.remove("is-invalid"));
+}
+
+// Todos os campos sao obrigatorios, exceto "observacoes".
+const requiredFields = [
+  ["nome_completo", "Preencha o nome completo."],
+  ["telefone", "Preencha o telefone."],
+  ["cpf", "Preencha o CPF."],
+  ["tipo_sanguineo", "Selecione o tipo sanguineo."],
+  ["tamanho_camiseta", "Selecione o tamanho da camiseta."],
+  ["grupo", "Preencha o grupo que pertence."],
+  ["cidade", "Preencha a cidade."],
+  ["veiculo", "Selecione o veiculo."],
+];
+
+const requiredChecks = [
+  ["solidaria", "Voce precisa marcar esta opcao para gerar o voucher."],
+  ["termos", "Voce precisa marcar esta opcao para gerar o voucher."],
+];
+
+function validateForm() {
+  clearFieldErrors();
+  const invalid = [];
+
+  requiredFields.forEach(([name, message]) => {
+    const element = form.elements[name];
+    if (!String(element.value || "").trim()) {
+      setFieldError(element, message);
+      invalid.push(element);
+    }
+  });
+
+  const telefone = form.elements.telefone;
+  const telefoneDigits = onlyDigits(telefone.value);
+  if (telefone.value.trim() && (telefoneDigits.length < 10 || telefoneDigits.length > 11)) {
+    setFieldError(telefone, "Telefone invalido: informe DDD + numero (10 ou 11 digitos).");
+    invalid.push(telefone);
+  }
+
+  const cpf = form.elements.cpf;
+  const cpfDigits = onlyDigits(cpf.value);
+  if (cpf.value.trim() && cpfDigits.length !== 11) {
+    setFieldError(
+      cpf,
+      `CPF invalido: voce informou ${cpfDigits.length} digitos e o CPF tem 11. Corrija para continuar.`,
+    );
+    invalid.push(cpf);
+  }
+
+  requiredChecks.forEach(([name, message]) => {
+    const element = form.elements[name];
+    if (!element.checked) {
+      setFieldError(element, message);
+      invalid.push(element);
+    }
+  });
+
+  return invalid;
+}
+
 function escapeHtml(value) {
   return String(value || "").replace(
     /[&<>"']/g,
@@ -359,6 +433,15 @@ bindAuthButtons({
 
 initUserMenuToggle();
 
+// Remove o aviso vermelho do campo assim que a pessoa comeca a corrigir.
+form.addEventListener("input", (event) => {
+  const label = event.target.closest("label");
+  if (!label || !label.classList.contains("is-invalid")) return;
+
+  label.classList.remove("is-invalid");
+  label.querySelector(".field-error")?.remove();
+});
+
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
 
@@ -368,22 +451,15 @@ form.addEventListener("submit", async (event) => {
     return;
   }
 
-  if (!form.reportValidity()) return;
-
-  const telefoneDigits = onlyDigits(form.elements.telefone.value);
-  if (telefoneDigits.length < 10 || telefoneDigits.length > 11) {
-    status.textContent = "Informe um telefone valido com DDD (10 ou 11 digitos).";
-    form.elements.telefone.focus();
+  const invalidFields = validateForm();
+  if (invalidFields.length) {
+    status.classList.add("is-error");
+    status.textContent = "Corrija os campos destacados em vermelho para gerar o voucher.";
+    invalidFields[0].focus();
     return;
   }
 
-  const cpfDigits = onlyDigits(form.elements.cpf.value);
-  if (cpfDigits.length !== 11) {
-    status.textContent = "Informe um CPF valido com 11 digitos.";
-    form.elements.cpf.focus();
-    return;
-  }
-
+  status.classList.remove("is-error");
   const data = formToData(form);
   status.textContent = "Gerando voucher...";
 
