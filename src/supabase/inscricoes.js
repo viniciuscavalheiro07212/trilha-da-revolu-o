@@ -16,6 +16,14 @@ export async function listarMinhasInscricoes() {
     throw new Error("Supabase nao configurado. Verifique as variaveis de ambiente.");
   }
 
+  // Filtra pelo usuario logado: sem isso, contas que tambem sao validadoras
+  // (policy de SELECT liberada para a tabela toda) veriam vouchers de todos.
+  const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
+  if (sessionError) throw sessionError;
+
+  const userId = sessionData?.session?.user?.id;
+  if (!userId) return [];
+
   const { data, error } = await supabase
     .from("inscricoes")
     .select(
@@ -40,6 +48,7 @@ export async function listarMinhasInscricoes() {
       created_at
     `,
     )
+    .eq("usuario_id", userId)
     .order("numero_inscricao", { ascending: false });
 
   if (error) throw error;

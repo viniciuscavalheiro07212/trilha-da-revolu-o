@@ -286,7 +286,9 @@ function renderResult(dados) {
           }</strong></div>
         </div>
         ${
-          dados.resultado === "ja-validado"
+          // Tambem no "validado" recem-feito: permite corrigir um engano na
+          // hora, sem precisar escanear o voucher de novo.
+          dados.resultado === "validado" || dados.resultado === "ja-validado"
             ? `<button type="button" class="result-undo" data-undo="${escapeHtml(dados.voucher_codigo)}">Desfazer validacao</button>`
             : ""
         }

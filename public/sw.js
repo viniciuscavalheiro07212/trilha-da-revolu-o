@@ -31,7 +31,13 @@ self.addEventListener("fetch", (event) => {
           caches.open(CACHE).then((cache) => cache.put(request, copy));
           return response;
         })
-        .catch(() => caches.match(request)),
+        // Offline: tenta a propria pagina no cache (ignorando query string,
+        // ex.: ?vouchers=1) e, em ultimo caso, o app de validacao.
+        .catch(() =>
+          caches
+            .match(request, { ignoreSearch: true })
+            .then((cached) => cached || caches.match("/validacao.html")),
+        ),
     );
     return;
   }

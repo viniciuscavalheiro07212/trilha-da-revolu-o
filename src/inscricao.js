@@ -91,7 +91,11 @@ async function initAuth() {
     updateAuthUi(session);
 
     if (!session) {
+      // Logout vindo de outra aba tambem limpa os vouchers da tela,
+      // senao os dados do usuario anterior ficam visiveis ate recarregar.
       vouchersLoadedForUserId = null;
+      vouchers.splice(0, vouchers.length);
+      emptyVoucher();
       return;
     }
 
@@ -389,6 +393,19 @@ async function loadSavedVouchers() {
 async function maybeSaveToSupabase(data) {
   if (!isSupabaseConfigured || !currentSession) return null;
 
+  // O codigo do voucher e gerado no cliente e tem constraint unique no banco.
+  // Numa colisao (erro 23505), gera outro codigo e tenta de novo.
+  for (let tentativa = 0; ; tentativa += 1) {
+    try {
+      return await salvarInscricao(data);
+    } catch (error) {
+      if (error?.code !== "23505" || tentativa >= 2) throw error;
+      data.voucher_codigo = voucherCode(data);
+    }
+  }
+}
+
+function salvarInscricao(data) {
   return criarInscricao({
     nome_completo: data.nome_completo,
     telefone: data.telefone,
