@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
+  <!-- PLACEHOLDER: troque este arquivo pela foto real das COSTAS da camiseta.
+       Basta salvar a foto como assets/camiseta-costas.png e atualizar o src
+       no index.html (secao #camiseta). -->
+  <defs>
+    <linearGradient id="corpoCostas" x1="1" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26262a"/>
+      <stop offset=".55" stop-color="#161618"/>
+      <stop offset="1" stop-color="#0d0d0f"/>
+    </linearGradient>
+    <linearGradient id="rastaCostas" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#188a3a"/>
+      <stop offset=".5" stop-color="#f4c20d"/>
+      <stop offset="1" stop-color="#cf1f2a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- corpo da camiseta (costas: gola mais alta) -->
+  <path d="M320 108
+           C 360 90 440 90 480 108
+           L 548 122
+           L 695 238
+           L 656 336
+           L 562 302
+           L 572 806
+           C 460 836 340 836 228 806
+           L 238 302
+           L 144 336
+           L 105 238
+           L 252 122
+           Z"
+        fill="url(#corpoCostas)" stroke="#303036" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- costuras dos ombros/mangas -->
+  <path d="M562 302 L 548 122 M238 302 L 252 122" stroke="#2b2b30" stroke-width="3" fill="none"/>
+
+  <!-- gola das costas (mais rasa) -->
+  <path d="M320 108 C 356 126 444 126 480 108 C 444 94 356 94 320 108 Z" fill="#222226"/>
+
+  <!-- estampa das costas -->
+  <g text-anchor="middle" font-family="'Arial Black',Arial,sans-serif">
+    <text x="400" y="300" font-size="40" font-style="italic" fill="#ffffff">TRILHA DA REVOLUÇÃO</text>
+    <text x="400" y="470" font-size="170" font-style="italic" fill="none" stroke="url(#rastaCostas)" stroke-width="5">VIII</text>
+    <text x="400" y="540" font-size="30" font-family="Arial,sans-serif" font-weight="bold" letter-spacing="6" fill="#9a9a9a">+130KM OFF-ROAD</text>
+
+    <rect x="255" y="580" width="290" height="52" rx="26" fill="none" stroke="#f4c20d" stroke-width="3" transform="skewX(-6)"/>
+    <text x="368" y="615" font-size="26" font-family="Arial,sans-serif" font-weight="bold" letter-spacing="3" fill="#f4c20d">200 PRIMEIROS</text>
+  </g>
+
+  <!-- brilho sutil no tecido -->
+  <path d="M548 122 L 480 108 C 460 240 470 520 500 790 L 560 776 Z" fill="#ffffff" opacity=".03"/>
+</svg>

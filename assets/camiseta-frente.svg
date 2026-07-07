@@ -1,0 +1,57 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 900">
+  <!-- PLACEHOLDER: troque este arquivo pela foto real da FRENTE da camiseta.
+       Basta salvar a foto como assets/camiseta-frente.png e atualizar o src
+       no index.html (secao #camiseta). -->
+  <defs>
+    <linearGradient id="corpo" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#26262a"/>
+      <stop offset=".55" stop-color="#161618"/>
+      <stop offset="1" stop-color="#0d0d0f"/>
+    </linearGradient>
+    <linearGradient id="rasta" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#188a3a"/>
+      <stop offset=".5" stop-color="#f4c20d"/>
+      <stop offset="1" stop-color="#cf1f2a"/>
+    </linearGradient>
+  </defs>
+
+  <!-- corpo da camiseta -->
+  <path d="M320 108
+           C 360 90 440 90 480 108
+           L 548 122
+           L 695 238
+           L 656 336
+           L 562 302
+           L 572 806
+           C 460 836 340 836 228 806
+           L 238 302
+           L 144 336
+           L 105 238
+           L 252 122
+           Z"
+        fill="url(#corpo)" stroke="#303036" stroke-width="4" stroke-linejoin="round"/>
+
+  <!-- costuras dos ombros/mangas -->
+  <path d="M562 302 L 548 122 M238 302 L 252 122" stroke="#2b2b30" stroke-width="3" fill="none"/>
+
+  <!-- abertura da gola -->
+  <path d="M320 108 C 356 150 444 150 480 108 C 444 92 356 92 320 108 Z" fill="#0a0a0b"/>
+  <!-- ribana da gola -->
+  <path d="M320 108 C 356 150 444 150 480 108 C 478 118 472 124 466 128 C 434 158 366 158 334 128 C 328 124 322 118 320 108 Z" fill="#222226"/>
+
+  <!-- estampa frontal -->
+  <g text-anchor="middle" font-family="'Arial Black',Arial,sans-serif">
+    <rect x="308" y="268" width="60" height="12" rx="3" fill="#188a3a" transform="skewX(-12)"/>
+    <rect x="376" y="268" width="60" height="12" rx="3" fill="#f4c20d" transform="skewX(-12)"/>
+    <rect x="444" y="268" width="60" height="12" rx="3" fill="#cf1f2a" transform="skewX(-12)"/>
+
+    <text x="400" y="368" font-size="86" font-style="italic" fill="#f4c20d">VIII</text>
+    <text x="400" y="438" font-size="52" font-style="italic" fill="#ffffff">TRILHA DA</text>
+    <text x="400" y="506" font-size="52" font-style="italic" fill="url(#rasta)">REVOLUÇÃO</text>
+    <text x="400" y="552" font-size="22" font-family="Arial,sans-serif" font-weight="bold" letter-spacing="4" fill="#9a9a9a">GRAVATAÍ → CIDREIRA</text>
+    <text x="400" y="584" font-size="20" font-family="Arial,sans-serif" font-weight="bold" letter-spacing="6" fill="#6f6f6f">19 · SET · 2026</text>
+  </g>
+
+  <!-- brilho sutil no tecido -->
+  <path d="M252 122 L 320 108 C 340 240 330 520 300 790 L 240 776 Z" fill="#ffffff" opacity=".03"/>
+</svg>
