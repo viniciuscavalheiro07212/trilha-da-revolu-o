@@ -45,6 +45,10 @@ export async function listarMinhasInscricoes() {
       status,
       numero_inscricao,
       camiseta_garantida,
+      mercado_pago_order_id,
+      mercado_pago_payment_id,
+      pagamento_status,
+      pago_em,
       created_at
     `,
     )

@@ -1,16 +1,21 @@
 import QRCode from "qrcode";
-import { criarInscricao, listarMinhasInscricoes } from "./supabase/inscricoes.js";
+import { criarPedidoPix, confirmarVoucherPago, consultarPedidoPix } from "./mercadopago.js";
+import { listarMinhasInscricoes } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 import { bindAuthButtons, loginWithGoogle, RETURN_TAB_KEY } from "./auth.js";
 
 const form = document.querySelector("#signup-form");
 const panel = document.querySelector("#voucher-panel");
+const paymentPanel = document.querySelector("#payment-panel");
 const status = document.querySelector("#form-status");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
 const vouchers = [];
 let currentSession = null;
+let pendingPayment = null;
+let paymentPolling = null;
+let isConfirmingPayment = false;
 
 const eventInfo = {
   nome: "VIII Trilha da Revolucao",
@@ -23,6 +28,11 @@ const eventInfo = {
 function activateTab(target) {
   if (target === "inscricao" && !currentSession) {
     status.textContent = "Use o login no cabecalho para liberar a inscricao.";
+  }
+
+  if (target === "pagamento" && !pendingPayment) {
+    status.textContent = "Preencha a inscricao para abrir o pagamento Pix.";
+    target = "inscricao";
   }
 
   tabButtons.forEach((button) => {
@@ -58,6 +68,21 @@ function updateAuthUi(session) {
     : "Use o login no cabecalho para liberar a inscricao.";
 }
 
+function paymentTabButton() {
+  return document.querySelector("[data-tab-target='pagamento']");
+}
+
+function showPaymentTab(show) {
+  const button = paymentTabButton();
+  if (button) button.hidden = !show;
+}
+
+function stopPaymentPolling() {
+  if (paymentPolling) {
+    window.clearInterval(paymentPolling);
+    paymentPolling = null;
+  }
+}
 async function initAuth() {
   if (!supabase) {
     updateAuthUi(null);
@@ -95,6 +120,10 @@ async function initAuth() {
       // senao os dados do usuario anterior ficam visiveis ate recarregar.
       vouchersLoadedForUserId = null;
       vouchers.splice(0, vouchers.length);
+      pendingPayment = null;
+      stopPaymentPolling();
+      showPaymentTab(false);
+      emptyPayment();
       emptyVoucher();
       return;
     }
@@ -204,16 +233,12 @@ function escapeHtml(value) {
   );
 }
 
-function voucherCode(data) {
-  const base = `${data.nome_completo}-${data.telefone}-${Date.now()}-${vouchers.length}`;
-  let hash = 0;
-
-  for (let i = 0; i < base.length; i += 1) {
-    hash = (hash << 5) - hash + base.charCodeAt(i);
-    hash |= 0;
-  }
-
-  return `TR-${Math.abs(hash).toString(36).toUpperCase().padStart(6, "0").slice(0, 6)}`;
+function formatCurrencyBRL(value) {
+  const amount = Number(value || 0);
+  return new Intl.NumberFormat("pt-BR", {
+    style: "currency",
+    currency: "BRL",
+  }).format(amount);
 }
 
 function formToData(formElement) {
@@ -224,9 +249,6 @@ function formToData(formElement) {
   data.cpf = onlyDigits(data.cpf);
   data.solidaria = formData.has("solidaria");
   data.termos = formData.has("termos");
-  data.voucher_codigo = voucherCode(data);
-  data.voucher_emitido_em = new Date().toISOString();
-  data.status = "voucher-gerado";
 
   return data;
 }
@@ -246,6 +268,18 @@ function emptyVoucher() {
       <span>Meus vouchers</span>
       <strong>Preencha o formulario para gerar sua inscricao.</strong>
       <p>Depois de gerar, o voucher aparece aqui com QR Code, codigo unico e aviso sobre a camiseta dos 200 primeiros inscritos.</p>
+    </div>
+  `;
+}
+
+function emptyPayment() {
+  if (!paymentPanel) return;
+
+  paymentPanel.innerHTML = `
+    <div class="payment-empty">
+      <span>Pagamento Pix</span>
+      <strong>Aguardando inscricao</strong>
+      <p>Depois de preencher os dados, o QR Code do Mercado Pago aparece aqui.</p>
     </div>
   `;
 }
@@ -310,6 +344,7 @@ async function voucherCard(data, index) {
             ${field("Grupo", data.grupo)}
             ${field("Cidade", data.cidade)}
             ${field("Veiculo", data.veiculo)}
+            ${field("Pagamento", data.mercado_pago_payment_id || data.comprovante)}
             ${field("Data", eventInfo.data)}
             ${field("Rota", eventInfo.rota)}
             ${field("Largada", eventInfo.largada)}
@@ -372,6 +407,116 @@ async function renderVouchers() {
 
 let vouchersLoadedForUserId = null;
 
+function paymentStatusText(payment) {
+  const paymentStatus = payment?.status?.paymentStatus || payment?.status?.status;
+
+  if (paymentStatus === "approved") return "Pagamento aprovado. Gerando voucher...";
+  if (paymentStatus === "rejected") return "Pagamento recusado. Gere uma nova cobranca Pix.";
+  if (paymentStatus === "cancelled" || paymentStatus === "canceled") return "Pagamento cancelado.";
+  return "Aguardando pagamento Pix.";
+}
+
+function renderPayment() {
+  if (!paymentPanel || !pendingPayment) {
+    emptyPayment();
+    return;
+  }
+
+  const qrImage = pendingPayment.qrCodeBase64
+    ? `<img src="data:image/png;base64,${escapeHtml(pendingPayment.qrCodeBase64)}" alt="QR Code Pix Mercado Pago">`
+    : "";
+
+  paymentPanel.innerHTML = `
+    <div class="payment-card">
+      <div class="payment-heading">
+        <span>Pagamento Pix</span>
+        <strong>${escapeHtml(formatCurrencyBRL(pendingPayment.amount))}</strong>
+      </div>
+      <div class="payment-qr-box">
+        ${qrImage}
+        <p>${escapeHtml(paymentStatusText(pendingPayment))}</p>
+      </div>
+      <label class="pix-copy">
+        Pix copia e cola
+        <textarea readonly rows="4">${escapeHtml(pendingPayment.qrCode || "")}</textarea>
+      </label>
+      <div class="payment-actions">
+        <button type="button" id="copy-pix-code">Copiar codigo Pix</button>
+        <button type="button" id="check-payment">Ja paguei</button>
+        ${pendingPayment.ticketUrl ? `<a href="${escapeHtml(pendingPayment.ticketUrl)}" target="_blank" rel="noopener">Abrir no Mercado Pago</a>` : ""}
+      </div>
+      <p class="payment-note">O voucher sera liberado automaticamente quando o Mercado Pago confirmar o pagamento.</p>
+    </div>
+  `;
+
+  document.querySelector("#copy-pix-code")?.addEventListener("click", async () => {
+    await navigator.clipboard.writeText(pendingPayment.qrCode || "");
+    status.textContent = "Codigo Pix copiado.";
+  });
+
+  document
+    .querySelector("#check-payment")
+    ?.addEventListener("click", () => checkPaymentStatus(true));
+}
+
+async function finishPaidVoucher() {
+  if (!pendingPayment || isConfirmingPayment) return;
+
+  isConfirmingPayment = true;
+  status.textContent = "Pagamento aprovado. Gerando voucher...";
+
+  try {
+    const { voucher } = await confirmarVoucherPago(pendingPayment.orderId);
+    vouchers.unshift(voucher);
+    await renderVouchers();
+
+    stopPaymentPolling();
+    pendingPayment = null;
+    isConfirmingPayment = false;
+    showPaymentTab(false);
+    emptyPayment();
+    form.reset();
+    activateTab("vouchers");
+    form.querySelector("[name='nome_completo']").focus();
+    status.textContent = `Voucher ${voucher.voucher_codigo} gerado apos confirmacao do pagamento.`;
+  } catch (error) {
+    isConfirmingPayment = false;
+    status.textContent =
+      "Pagamento aprovado, mas nao foi possivel gerar o voucher agora. Tente conferir novamente.";
+    console.error(error);
+  }
+}
+
+async function checkPaymentStatus(showWaitingMessage = false) {
+  if (!pendingPayment) return;
+
+  try {
+    const paymentStatus = await consultarPedidoPix(pendingPayment.orderId);
+    pendingPayment.status = paymentStatus;
+    renderPayment();
+
+    if (paymentStatus.approved) {
+      await finishPaidVoucher();
+      return;
+    }
+
+    if (showWaitingMessage) {
+      status.textContent =
+        "Ainda nao apareceu como pago. Aguarde alguns segundos e confira novamente.";
+    }
+  } catch (error) {
+    if (showWaitingMessage) {
+      status.textContent = "Nao foi possivel consultar o pagamento agora.";
+    }
+    console.error(error);
+  }
+}
+
+function startPaymentPolling() {
+  stopPaymentPolling();
+  paymentPolling = window.setInterval(() => checkPaymentStatus(false), 8000);
+}
+
 async function loadSavedVouchers() {
   if (!isSupabaseConfigured || !currentSession) return;
 
@@ -388,41 +533,6 @@ async function loadSavedVouchers() {
     status.textContent = "Nao foi possivel carregar seus vouchers agora.";
     console.error(error);
   }
-}
-
-async function maybeSaveToSupabase(data) {
-  if (!isSupabaseConfigured || !currentSession) return null;
-
-  // O codigo do voucher e gerado no cliente e tem constraint unique no banco.
-  // Numa colisao (erro 23505), gera outro codigo e tenta de novo.
-  for (let tentativa = 0; ; tentativa += 1) {
-    try {
-      return await salvarInscricao(data);
-    } catch (error) {
-      if (error?.code !== "23505" || tentativa >= 2) throw error;
-      data.voucher_codigo = voucherCode(data);
-    }
-  }
-}
-
-function salvarInscricao(data) {
-  return criarInscricao({
-    nome_completo: data.nome_completo,
-    telefone: data.telefone,
-    cpf: data.cpf,
-    tipo_sanguineo: data.tipo_sanguineo,
-    grupo: data.grupo,
-    cidade: data.cidade,
-    tamanho_camiseta: data.tamanho_camiseta,
-    veiculo: data.veiculo,
-    comprovante_url: data.comprovante,
-    observacoes: data.observacoes,
-    solidaria: data.solidaria,
-    termos: data.termos,
-    voucher_codigo: data.voucher_codigo,
-    voucher_emitido_em: data.voucher_emitido_em,
-    status: data.status,
-  });
 }
 
 tabButtons.forEach((button) => {
@@ -451,6 +561,10 @@ bindAuthButtons({
   afterLogout: async () => {
     vouchersLoadedForUserId = null;
     vouchers.splice(0, vouchers.length);
+    pendingPayment = null;
+    stopPaymentPolling();
+    showPaymentTab(false);
+    emptyPayment();
     await renderVouchers();
     activateTab("inscricao");
   },
@@ -486,25 +600,25 @@ form.addEventListener("submit", async (event) => {
 
   status.classList.remove("is-error");
   const data = formToData(form);
-  status.textContent = "Gerando voucher...";
+  status.textContent = "Gerando pagamento Pix...";
 
   try {
-    const saved = await maybeSaveToSupabase(data);
-    const voucher = saved ? { ...data, ...saved } : data;
+    pendingPayment = {
+      ...(await criarPedidoPix(data)),
+      registration: data,
+    };
 
-    vouchers.unshift(voucher);
-    await renderVouchers();
-    activateTab("vouchers");
-    form.reset();
-    form.querySelector("[name='nome_completo']").focus();
-
-    status.textContent = saved
-      ? `Voucher ${voucher.voucher_codigo} gerado e enviado ao Supabase.`
-      : `Voucher ${voucher.voucher_codigo} gerado. Supabase ainda nao configurado; voce pode preencher outra inscricao.`;
+    showPaymentTab(true);
+    renderPayment();
+    activateTab("pagamento");
+    startPaymentPolling();
+    status.textContent = "Pagamento Pix criado. Escaneie o QR Code para liberar o voucher.";
   } catch (error) {
-    status.textContent = "Nao foi possivel salvar no Supabase agora. Tente novamente em instantes.";
+    status.textContent = error.message || "Nao foi possivel criar o pagamento agora.";
     console.error(error);
   }
 });
 
+showPaymentTab(false);
+emptyPayment();
 initAuth();

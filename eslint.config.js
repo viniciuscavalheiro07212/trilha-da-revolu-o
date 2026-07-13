@@ -15,6 +15,17 @@ export default [
     },
   },
   {
+    files: ["api/**/*.js"],
+    languageOptions: {
+      ecmaVersion: 2023,
+      sourceType: "module",
+      globals: {
+        ...globals.node,
+        fetch: "readonly",
+      },
+    },
+  },
+  {
     files: ["*.config.js"],
     languageOptions: {
       ecmaVersion: 2023,

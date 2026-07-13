@@ -58,6 +58,7 @@
 
     <nav class="signup-tabs" aria-label="Abas da inscricao">
       <button class="signup-tab is-active" type="button" data-tab-target="inscricao">Inscricao</button>
+      <button class="signup-tab" type="button" data-tab-target="pagamento" hidden>Pagamento</button>
       <button class="signup-tab" type="button" data-tab-target="vouchers">Meus vouchers</button>
     </nav>
 
@@ -151,12 +152,22 @@
         </label>
 
         <div class="form-actions">
-          <button type="submit">Gerar voucher / adicionar inscricao</button>
+          <button type="submit">Ir para pagamento Pix</button>
           <a href="https://wa.me/5551993725451" target="_blank" rel="noopener">Falar no WhatsApp</a>
         </div>
         <p class="form-note" id="form-status" role="status"></p>
       </form>
 
+    </section>
+
+    <section class="payment-layout tab-panel" id="tab-pagamento">
+      <aside class="payment-panel" id="payment-panel" aria-live="polite">
+        <div class="payment-empty">
+          <span>Pagamento Pix</span>
+          <strong>Aguardando inscricao</strong>
+          <p>Depois de preencher os dados, o QR Code do Mercado Pago aparece aqui.</p>
+        </div>
+      </aside>
     </section>
 
     <section class="voucher-layout tab-panel" id="tab-vouchers">

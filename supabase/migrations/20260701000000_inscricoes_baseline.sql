@@ -19,6 +19,10 @@ create table if not exists public.inscricoes (
   voucher_codigo text unique,
   voucher_emitido_em timestamptz,
   status text not null default 'pendente',
+  mercado_pago_order_id text,
+  mercado_pago_payment_id text,
+  pagamento_status text,
+  pago_em timestamptz,
   created_at timestamptz not null default now()
 );
 
@@ -26,27 +30,39 @@ alter table public.inscricoes enable row level security;
 
 -- Inscricao exige login: anon nao tem policy nem privilegio de INSERT.
 drop policy if exists "Permitir envio publico de inscricoes" on public.inscricoes;
+
+alter table public.inscricoes
+  add column if not exists mercado_pago_order_id text,
+  add column if not exists mercado_pago_payment_id text,
+  add column if not exists pagamento_status text,
+  add column if not exists pago_em timestamptz;
+
+create unique index if not exists inscricoes_mercado_pago_order_id_uidx
+on public.inscricoes (mercado_pago_order_id)
+where mercado_pago_order_id is not null;
+
+create table if not exists public.pagamentos_pix_pendentes (
+  mercado_pago_order_id text primary key,
+  usuario_id uuid not null,
+  usuario_email text,
+  dados jsonb not null,
+  amount numeric(10,2) not null,
+  status text not null default 'aguardando_pagamento',
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+alter table public.pagamentos_pix_pendentes enable row level security;
 revoke insert on table public.inscricoes from anon;
-grant select, insert on table public.inscricoes to authenticated;
+revoke insert on table public.inscricoes from authenticated;
+grant select on table public.inscricoes to authenticated;
 grant select, insert, update, delete on table public.inscricoes to service_role;
+revoke all on table public.pagamentos_pix_pendentes from anon;
+revoke all on table public.pagamentos_pix_pendentes from authenticated;
+grant select, insert, update, delete on table public.pagamentos_pix_pendentes to service_role;
 
 drop policy if exists "Permitir envio autenticado de inscricoes" on public.inscricoes;
-create policy "Permitir envio autenticado de inscricoes"
-on public.inscricoes
-for insert
-to authenticated
-with check (
-  usuario_id = (select auth.uid())
-  and nome_completo is not null
-  and length(trim(nome_completo)) >= 3
-  and telefone is not null
-  and length(trim(telefone)) >= 8
-  and solidaria is true
-  and termos is true
-  and status = 'voucher-gerado'
-  and voucher_codigo like 'TR-%'
-  and voucher_emitido_em is not null
-);
+drop policy if exists "Permitir envio publico de inscricoes" on public.inscricoes;
 
 drop policy if exists "Participante pode ler seus vouchers" on public.inscricoes;
 create policy "Participante pode ler seus vouchers"
@@ -146,8 +162,8 @@ $$;
 
 revoke all on function public.criar_inscricao_publica(jsonb) from public;
 revoke execute on function public.criar_inscricao_publica(jsonb) from anon;
-grant execute on function public.criar_inscricao_publica(jsonb) to authenticated;
+revoke execute on function public.criar_inscricao_publica(jsonb) from authenticated;
 
 -- Por seguranca, nao ha policy publica de SELECT nem INSERT direto para anon.
--- O formulario publico usa a funcao criar_inscricao_publica, que valida os dados
--- exige login e retorna apenas os metadados necessarios para o voucher.
+-- O frontend tambem nao tem INSERT autenticado. O voucher agora e inserido apenas
+-- pelo backend depois que a API do Mercado Pago confirma o pagamento Pix.
