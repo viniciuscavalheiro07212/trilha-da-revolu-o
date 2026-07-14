@@ -206,14 +206,19 @@
       <a href="inscricao.html" class="hero-35">Garantir a minha</a>
     </div>
     <div class="shirt3d-06">
-      <div class="shirt3d-stage" role="img" aria-label="Camiseta oficial do evento em 3D. Arraste para girar.">
-        <div class="shirt3d-card">
-          <img class="shirt3d-face shirt3d-front" src="assets/camiseta-frente.svg" alt="" draggable="false">
-          <img class="shirt3d-face shirt3d-back" src="assets/camiseta-costas.svg" alt="" draggable="false">
+      <div class="shirt3d-stage" aria-label="Visualizador 3D da camiseta oficial. Arraste horizontalmente para girar." tabindex="0">
+        <canvas class="shirt3d-canvas" aria-hidden="true"></canvas>
+        <div class="shirt3d-loading" role="status">Carregando camiseta</div>
+        <div class="shirt3d-fallback">
+          <img src="assets/camiseta-oficial-frente.png" alt="Frente da camiseta oficial">
+          <img src="assets/camiseta-oficial-costas.png" alt="Costas da camiseta oficial">
         </div>
-        <div class="shirt3d-shadow" aria-hidden="true"></div>
       </div>
-      <p class="shirt3d-hint">↔ Arraste para girar</p>
+      <div class="shirt3d-controls" role="group" aria-label="Posição da camiseta">
+        <button type="button" class="is-active" data-shirt-view="front" aria-pressed="true">Frente</button>
+        <button type="button" data-shirt-view="back" aria-pressed="false">Costas</button>
+        <button type="button" data-shirt-view="auto" aria-pressed="true">Girar</button>
+      </div>
     </div>
   </section>
 

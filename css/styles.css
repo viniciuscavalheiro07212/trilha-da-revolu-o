@@ -1261,21 +1261,17 @@ button.site-header-08 {
 
 
 /* =====================================================================
-   CAMISETA OFICIAL — visualizador 3D (arraste para girar)
-   A rotacao e aplicada pelo src/shirt3d.js em requestAnimationFrame,
-   entao o re-render do runtime da home nao "congela" a camiseta.
+   CAMISETA OFICIAL - visualizador Three.js
    ===================================================================== */
 .shirt3d-01 {
   position:relative;
   display:grid;
-  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
-  gap:clamp(28px,5vw,64px);
+  grid-template-columns:minmax(300px,.8fr) minmax(420px,1.2fr);
+  gap:clamp(24px,4vw,58px);
   align-items:center;
-  padding:clamp(48px,7vw,90px) clamp(24px,5vw,72px);
-  background:
-    radial-gradient(circle at 80% 15%, rgba(244,194,13,.06), transparent 45%),
-    radial-gradient(circle at 12% 88%, rgba(24,138,58,.07), transparent 42%),
-    #0e0e10;
+  min-height:min(820px,92vh);
+  padding:clamp(48px,7vw,88px) clamp(24px,5vw,72px);
+  background:#0e0e10;
   border-top:1px solid rgba(255,255,255,.06);
   border-bottom:1px solid rgba(255,255,255,.06);
   overflow:hidden;
@@ -1306,63 +1302,93 @@ button.site-header-08 {
   line-height:1.7;
   margin:0 0 26px;
 }
-.shirt3d-06 { text-align:center; }
+.shirt3d-06 { min-width:0; text-align:center; }
 .shirt3d-stage {
   position:relative;
-  width:min(420px,78vw);
+  width:min(620px,100%);
   margin:0 auto;
-  aspect-ratio:8/9;
-  perspective:1100px;
+  aspect-ratio:1/1;
   cursor:grab;
-  /* pan-y: arrastar na horizontal gira a camiseta, na vertical rola a pagina */
   touch-action:pan-y;
   user-select:none;
   -webkit-user-select:none;
+  outline:none;
 }
+.shirt3d-stage:focus-visible { outline:2px solid #f4c20d; outline-offset:4px; }
 .shirt3d-stage.is-dragging { cursor:grabbing; }
-.shirt3d-card {
-  position:absolute;
-  inset:0;
-  transform-style:preserve-3d;
-  will-change:transform;
-}
-.shirt3d-face {
-  position:absolute;
-  inset:0;
+.shirt3d-canvas {
+  display:block;
   width:100%;
   height:100%;
-  object-fit:contain;
-  backface-visibility:hidden;
-  -webkit-backface-visibility:hidden;
-  filter:drop-shadow(0 18px 30px rgba(0,0,0,.45));
-  pointer-events:none;
 }
-.shirt3d-back { transform:rotateY(180deg); }
-.shirt3d-shadow {
+.shirt3d-loading {
   position:absolute;
-  left:50%;
-  bottom:-4%;
-  width:62%;
-  height:26px;
-  transform:translateX(-50%);
-  border-radius:50%;
-  background:radial-gradient(ellipse at center, rgba(0,0,0,.55), transparent 70%);
-  filter:blur(6px);
-  pointer-events:none;
-}
-.shirt3d-hint {
+  inset:0;
+  display:grid;
+  place-items:center;
+  color:#a8a8a8;
   font-family:'Barlow Condensed',sans-serif;
-  letter-spacing:.18em;
+  font-size:15px;
+  font-weight:700;
+  letter-spacing:.16em;
   text-transform:uppercase;
-  color:#8f8f8f;
-  font-size:13px;
-  margin:14px 0 0;
+}
+.shirt3d-stage.is-ready .shirt3d-loading { display:none; }
+.shirt3d-fallback {
+  display:none;
+  width:100%;
+  height:100%;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+  align-items:center;
+}
+.shirt3d-stage.is-fallback .shirt3d-canvas,
+.shirt3d-stage.is-fallback .shirt3d-loading { display:none; }
+.shirt3d-stage.is-fallback .shirt3d-fallback { display:grid; }
+.shirt3d-fallback img {
+  display:block;
+  width:100%;
+  max-height:560px;
+  object-fit:contain;
+}
+.shirt3d-controls {
+  display:inline-grid;
+  grid-template-columns:repeat(3,104px);
+  gap:4px;
+  margin-top:12px;
+  padding:4px;
+  border:1px solid rgba(255,255,255,.14);
+  border-radius:8px;
+  background:#151517;
+}
+.shirt3d-controls button {
+  min-height:42px;
+  border:0;
+  border-radius:5px;
+  background:transparent;
+  color:#a8a8a8;
+  font-family:'Barlow Condensed',sans-serif;
+  font-size:15px;
+  font-weight:800;
+  letter-spacing:.08em;
+  text-transform:uppercase;
+  cursor:pointer;
+}
+.shirt3d-controls button:hover { color:#fff; background:#242426; }
+.shirt3d-controls button.is-active { background:#f4c20d; color:#0b0b0c; }
+.shirt3d-controls button:focus-visible { outline:2px solid #fff; outline-offset:-3px; }
+.shirt3d-controls.is-hidden { display:none; }
+
+@media (prefers-reduced-motion:reduce) {
+  .shirt3d-controls [data-shirt-view="auto"] { display:none; }
 }
 
 @media (max-width:768px) {
-  .shirt3d-01 { grid-template-columns:1fr; text-align:center; }
+  .shirt3d-01 { grid-template-columns:1fr; min-height:0; text-align:center; }
   .shirt3d-02 { max-width:none; }
   .shirt3d-02 .hero-35 { width:100%; justify-content:center; }
+  .shirt3d-stage { width:min(520px,100%); aspect-ratio:1/1; }
+  .shirt3d-controls { grid-template-columns:repeat(3,minmax(84px,1fr)); width:min(100%,360px); }
 }
 
 /* =====================================================================

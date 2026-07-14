@@ -2,14 +2,45 @@ import { supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 import { bindAuthButtons, loginWithGoogle } from "./auth.js";
 import { initCarousel } from "./carousel.js";
-import { initShirt3d } from "./shirt3d.js";
 
 const signupUrl = `${window.location.origin}/inscricao.html`;
 
 initUserMenuToggle();
 bindAuthButtons();
 initCarousel();
-initShirt3d();
+
+function prepareShirt3d() {
+  const loadViewer = async () => {
+    const { initShirt3d } = await import("./shirt3d.js");
+    await initShirt3d();
+  };
+
+  const observeSection = () => {
+    const section = document.querySelector("#camiseta");
+    if (!section) return;
+
+    if (!("IntersectionObserver" in window)) {
+      loadViewer();
+      return;
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry.isIntersecting) return;
+        observer.disconnect();
+        loadViewer();
+      },
+      { rootMargin: "320px 0px" },
+    );
+    observer.observe(section);
+  };
+
+  // O runtime visual substitui a arvore inicial da home logo apos o load.
+  // Aguarda essa etapa para observar o elemento que permanecera na pagina.
+  window.setTimeout(observeSection, 500);
+}
+
+prepareShirt3d();
 
 // Qualquer link/botao que leve a pagina de inscricao: sem login, vai direto
 // para o login com Google. Delegation no document porque o runtime da home
