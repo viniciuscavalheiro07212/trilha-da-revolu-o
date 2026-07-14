@@ -60,6 +60,14 @@ Rode as migrations em `supabase/migrations/` no Supabase antes de publicar, para
 
 No painel do Mercado Pago, em Webhooks, configure a URL publica `https://seu-dominio.com/api/mercadopago/webhook` e selecione o evento `Order (Mercado Pago)`. Copie o secret gerado para `MERCADO_PAGO_WEBHOOK_SECRET`.
 
+## Email do voucher
+
+O webhook do Mercado Pago so cria o voucher quando a API confirma o pagamento como aprovado. O email fica agendado para 1 minuto depois; a fila do Supabase confere novamente que o status registrado e `approved`, `processed` ou `completed` antes de enviar para o email da conta logada (`usuario_email`).
+
+Crie uma chave em `https://resend.com/api-keys`, verifique seu dominio no Resend e, no Supabase, abra **Project Settings > Edge Functions > Secrets** para cadastrar `RESEND_API_KEY`, `VOUCHER_EMAIL_FROM`, `VOUCHER_EMAIL_REPLY_TO` e `SITE_URL`. Rode as migrations mais recentes para ativar o agendamento a cada minuto.
+
+Se o envio falhar, o voucher continua valido, o erro fica salvo em `email_voucher_erro` e a fila tenta novamente em 5 minutos.
+
 O `npm run dev` do Vite serve apenas o frontend. Para testar os endpoints de API localmente, use `vercel dev` ou uma publicacao de Preview da Vercel.
 
 ## Preservacao visual
