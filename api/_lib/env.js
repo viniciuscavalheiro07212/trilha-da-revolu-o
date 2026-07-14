@@ -41,3 +41,8 @@ export function requireEnv(name, fallbackName = null) {
   }
   return value;
 }
+
+export function optionalEnv(name, fallbackValue = "") {
+  loadLocalEnv();
+  return process.env[name] || fallbackValue;
+}

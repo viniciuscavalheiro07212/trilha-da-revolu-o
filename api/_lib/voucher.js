@@ -67,6 +67,12 @@ function voucherCode({ user, order }) {
   return `TR-${hash}`;
 }
 
+function approvedPaymentStatus(order, payment) {
+  if (payment?.status === "approved") return "approved";
+  if (["approved", "processed", "completed"].includes(order?.status)) return order.status;
+  return payment?.status || order?.status || "approved";
+}
+
 export async function createPaidVoucher({ user, order, registration }) {
   const supabase = getSupabaseAdmin();
   const payment = getOrderPayment(order);
@@ -76,6 +82,7 @@ export async function createPaidVoucher({ user, order, registration }) {
     .select(
       `
       usuario_id,
+      usuario_email,
       nome_completo,
       telefone,
       cpf,
@@ -97,6 +104,10 @@ export async function createPaidVoucher({ user, order, registration }) {
       mercado_pago_payment_id,
       pagamento_status,
       pago_em,
+      email_voucher_agendado_em,
+      email_voucher_processando_em,
+      email_voucher_enviado_em,
+      email_voucher_erro,
       created_at
     `,
     )
@@ -110,10 +121,21 @@ export async function createPaidVoucher({ user, order, registration }) {
       error.statusCode = 403;
       throw error;
     }
-    return { ...existing, comprovante: existing.comprovante_url };
+    const voucher = { ...existing, comprovante: existing.comprovante_url };
+    if (!voucher.email_voucher_enviado_em && !voucher.email_voucher_agendado_em) {
+      const scheduledAt = voucherEmailScheduledAt();
+      await supabase
+        .from("inscricoes")
+        .update({ email_voucher_agendado_em: scheduledAt, email_voucher_erro: null })
+        .eq("voucher_codigo", voucher.voucher_codigo);
+      voucher.email_voucher_agendado_em = scheduledAt;
+      voucher.email_voucher_erro = null;
+    }
+    return voucher;
   }
 
   const voucher_emitido_em = new Date().toISOString();
+  const email_voucher_agendado_em = voucherEmailScheduledAt();
   const row = {
     ...registration,
     usuario_id: user.id,
@@ -124,8 +146,9 @@ export async function createPaidVoucher({ user, order, registration }) {
     status: "voucher-gerado",
     mercado_pago_order_id: order.id,
     mercado_pago_payment_id: payment?.id || null,
-    pagamento_status: payment?.status || order.status || "approved",
+    pagamento_status: approvedPaymentStatus(order, payment),
     pago_em: voucher_emitido_em,
+    email_voucher_agendado_em,
   };
 
   const { data, error } = await supabase
@@ -154,6 +177,11 @@ export async function createPaidVoucher({ user, order, registration }) {
       mercado_pago_payment_id,
       pagamento_status,
       pago_em,
+      usuario_email,
+      email_voucher_agendado_em,
+      email_voucher_processando_em,
+      email_voucher_enviado_em,
+      email_voucher_erro,
       created_at
     `,
     )
@@ -167,6 +195,10 @@ export async function createPaidVoucher({ user, order, registration }) {
     .eq("mercado_pago_order_id", order.id);
 
   return { ...data, comprovante: data.comprovante_url };
+}
+
+function voucherEmailScheduledAt() {
+  return new Date(Date.now() + 60_000).toISOString();
 }
 
 export async function savePendingPixPayment({ user, orderId, registration, amount }) {
