@@ -1,9 +1,10 @@
-import { bindAuthButtons, loginWithGoogle } from "./auth.js";
+import { bindAuthButtons, loginWithGoogle, logoutFromGoogle } from "./auth.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
 
 const account = document.querySelector("#test-account");
 const button = document.querySelector("#send-test-email");
+const switchAccountButton = document.querySelector("#switch-test-account");
 const status = document.querySelector("#test-email-status");
 let currentSession = null;
 
@@ -67,6 +68,21 @@ button.addEventListener("click", async () => {
   } finally {
     button.disabled = false;
   }
+});
+
+switchAccountButton.addEventListener("click", async () => {
+  switchAccountButton.disabled = true;
+  setStatus("Abrindo o seletor de contas do Google...");
+
+  const { error: logoutError } = await logoutFromGoogle();
+  if (logoutError) {
+    setStatus("Nao foi possivel trocar a conta agora.", true);
+    switchAccountButton.disabled = false;
+    return;
+  }
+
+  await loginWithGoogle(undefined, { selectAccount: true });
+  switchAccountButton.disabled = false;
 });
 
 bindAuthButtons({

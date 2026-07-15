@@ -8,6 +8,7 @@ export const RETURN_TAB_KEY = "trilha-return-tab";
 
 export async function loginWithGoogle(
   redirectTo = `${window.location.origin}${window.location.pathname}`,
+  { selectAccount = false } = {},
 ) {
   if (!supabase) {
     return { error: new Error("Supabase nao configurado. Verifique as variaveis de ambiente.") };
@@ -19,6 +20,7 @@ export async function loginWithGoogle(
     provider: "google",
     options: {
       redirectTo,
+      ...(selectAccount ? { queryParams: { prompt: "select_account" } } : {}),
     },
   });
 
