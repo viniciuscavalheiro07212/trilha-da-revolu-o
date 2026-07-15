@@ -12,6 +12,21 @@ function setStatus(message, isError = false) {
   status.classList.toggle("is-error", isError);
 }
 
+async function getFunctionErrorMessage(error) {
+  const response = error?.context;
+  if (response && typeof response.json === "function") {
+    try {
+      const body = await (typeof response.clone === "function" ? response.clone() : response).json();
+      if (typeof body?.error === "string") return body.error;
+      if (typeof body?.message === "string") return body.message;
+    } catch {
+      // The function response did not contain JSON error details.
+    }
+  }
+
+  return String(error?.message || "Nao foi possivel enviar o e-mail de teste.");
+}
+
 function renderPage() {
   renderUserMenu(currentSession);
   const email = currentSession?.user?.email;
@@ -47,7 +62,7 @@ button.addEventListener("click", async () => {
     if (error || !data?.sent) throw new Error(data?.error || error?.message || "Falha ao enviar teste.");
     setStatus("E-mail de teste enviado. Confira sua caixa de entrada.");
   } catch (error) {
-    setStatus(String(error?.message || "Nao foi possivel enviar o e-mail de teste."), true);
+    setStatus(await getFunctionErrorMessage(error), true);
   } finally {
     button.disabled = false;
   }
