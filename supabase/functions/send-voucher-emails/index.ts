@@ -3,6 +3,10 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const resendEndpoint = "https://api.resend.com/emails";
 const approvedPaymentStatuses = ["approved", "processed", "completed"];
+const corsHeaders = {
+  "Access-Control-Allow-Origin": Deno.env.get("SITE_URL") || "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 function escapeHtml(value: unknown) {
   return String(value ?? "").replace(
@@ -77,14 +81,79 @@ async function sendVoucherEmail(voucher: Record<string, unknown>) {
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.message || payload.error || "Falha ao enviar email.");
+  return payload;
 }
 
-Deno.serve(async () => {
+function sendJson(body: Record<string, unknown>, status = 200) {
+  return Response.json(body, { status, headers: corsHeaders });
+}
+
+function getPublishableKey() {
+  const legacyKey = Deno.env.get("SUPABASE_ANON_KEY");
+  if (legacyKey) return legacyKey;
+
+  const keys = JSON.parse(Deno.env.get("SUPABASE_PUBLISHABLE_KEYS") || "{}");
+  return keys.default || Object.values(keys)[0];
+}
+
+async function sendTestVoucherEmail(request: Request, supabaseUrl: string) {
+  const allowedRecipient = Deno.env.get("VOUCHER_EMAIL_TEST_RECIPIENT")?.trim().toLowerCase();
+  if (!allowedRecipient) {
+    return sendJson({ error: "Configure VOUCHER_EMAIL_TEST_RECIPIENT nos segredos da Edge Function." }, 503);
+  }
+
+  const authorization = request.headers.get("Authorization");
+  const publishableKey = getPublishableKey();
+  if (!authorization || !publishableKey) {
+    return sendJson({ error: "Login necessario para enviar o email de teste." }, 401);
+  }
+
+  const userResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+    headers: { Authorization: authorization, apikey: String(publishableKey) },
+  });
+  const user = await userResponse.json().catch(() => ({}));
+  const recipient = String(user?.email || "").trim().toLowerCase();
+
+  if (!userResponse.ok || !recipient) {
+    return sendJson({ error: "Nao foi possivel confirmar a conta logada." }, 401);
+  }
+
+  if (recipient !== allowedRecipient) {
+    return sendJson({ error: "Esta conta nao esta autorizada a enviar emails de teste." }, 403);
+  }
+
+  try {
+    const result = await sendVoucherEmail({
+      voucher_codigo: "TESTE-EMAIL",
+      usuario_email: recipient,
+      nome_completo: user.user_metadata?.full_name || "Cliente de teste",
+      cpf: "000.000.000-00",
+      grupo: "Grupo demonstracao",
+      cidade: "Gravatai - RS",
+      veiculo: "Motocicleta",
+      tamanho_camiseta: "M",
+      numero_inscricao: "TESTE",
+      camiseta_garantida: true,
+      voucher_emitido_em: new Date().toISOString(),
+    });
+    return sendJson({ sent: true, emailId: result?.id || null });
+  } catch (error) {
+    return sendJson({ error: String(error?.message || "Falha ao enviar email de teste.") }, 502);
+  }
+}
+
+Deno.serve(async (request) => {
+  if (request.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
+  if (request.method !== "POST") return sendJson({ error: "Metodo nao permitido." }, 405);
+
   const supabaseUrl = Deno.env.get("SUPABASE_URL");
   const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY");
   if (!supabaseUrl || !serviceRoleKey) {
-    return Response.json({ error: "Configuracao Supabase ausente." }, { status: 500 });
+    return sendJson({ error: "Configuracao Supabase ausente." }, 500);
   }
+
+  const body = await request.json().catch(() => ({}));
+  if (body?.mode === "test") return sendTestVoucherEmail(request, supabaseUrl);
 
   const supabase = createClient(supabaseUrl, serviceRoleKey, { auth: { persistSession: false } });
   const now = new Date();
@@ -97,7 +166,7 @@ Deno.serve(async () => {
     .in("pagamento_status", approvedPaymentStatuses)
     .or(`email_voucher_processando_em.is.null,email_voucher_processando_em.lt.${staleProcessingAt}`)
     .limit(20);
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return sendJson({ error: error.message }, 500);
 
   let sent = 0;
   let failed = 0;
@@ -138,5 +207,5 @@ Deno.serve(async () => {
     }
   }
 
-  return Response.json({ processed: (candidates || []).length, sent, failed });
+  return sendJson({ processed: (candidates || []).length, sent, failed });
 });

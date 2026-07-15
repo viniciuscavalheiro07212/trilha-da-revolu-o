@@ -68,6 +68,10 @@ Crie uma chave em `https://resend.com/api-keys`, verifique seu dominio no Resend
 
 Se o envio falhar, o voucher continua valido, o erro fica salvo em `email_voucher_erro` e a fila tenta novamente em 5 minutos.
 
+## Teste de email
+
+A pagina `teste-email.html` envia um voucher de demonstracao sem criar Pix, inscricao ou registro na tabela. Para evitar uso indevido, cadastre `VOUCHER_EMAIL_TEST_RECIPIENT` nos segredos da Edge Function com o email da conta Google que podera realizar o teste. A pessoa deve entrar com essa mesma conta antes de clicar em **Finalizar e enviar e-mail de teste**.
+
 O `npm run dev` do Vite serve apenas o frontend. Para testar os endpoints de API localmente, use `vercel dev` ou uma publicacao de Preview da Vercel.
 
 ## Preservacao visual

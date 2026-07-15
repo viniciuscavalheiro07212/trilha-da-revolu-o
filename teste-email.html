@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Teste de e-mail | VIII Trilha da Revolucao</title>
+  <link rel="icon" href="/favicon.ico" sizes="48x48">
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="css/fonts.css">
+  <link rel="stylesheet" href="css/styles.css">
+  <link rel="stylesheet" href="css/inscricao.css">
+  <script type="module" src="/src/teste-email.js"></script>
+</head>
+<body>
+  <main class="signup-page">
+    <header class="signup-header">
+      <a class="signup-brand" href="index.html" aria-label="Voltar para a home">
+        <span class="signup-brand-mark"></span>
+        <span><strong>VIII Trilha</strong><small>da Revolucao</small></span>
+      </a>
+      <nav class="signup-nav">
+        <a href="inscricao.html">Inscricao</a>
+        <button type="button" class="header-auth-button auth-login-button">Login</button>
+        <div class="auth-user" hidden>
+          <button type="button" class="auth-user-trigger" aria-haspopup="true" aria-expanded="false">
+            <span class="auth-user-avatar" aria-hidden="true"></span>
+            <span class="auth-user-name"></span>
+            <span class="auth-user-caret" aria-hidden="true">&#9662;</span>
+          </button>
+          <div class="auth-user-menu" hidden>
+            <a href="inscricao.html?vouchers=1" class="auth-user-item auth-vouchers-link">Meus vouchers</a>
+            <button type="button" class="auth-user-item auth-logout-button">Sair</button>
+          </div>
+        </div>
+      </nav>
+    </header>
+
+    <section class="email-test-layout">
+      <div class="email-test-heading">
+        <span>Area de teste</span>
+        <h1>Voucher por e-mail</h1>
+      </div>
+      <section class="email-test-panel" aria-live="polite">
+        <p class="email-test-account" id="test-account">Entre com a conta autorizada para enviar o teste.</p>
+        <button class="email-test-action" type="button" id="send-test-email" disabled>Finalizar e enviar e-mail de teste</button>
+        <p class="form-note" id="test-email-status" role="status"></p>
+      </section>
+    </section>
+  </main>
+</body>
+</html>
