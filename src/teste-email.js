@@ -59,7 +59,8 @@ button.addEventListener("click", async () => {
     const { data, error } = await supabase.functions.invoke("send-voucher-emails", {
       body: { mode: "test" },
     });
-    if (error || !data?.sent) throw new Error(data?.error || error?.message || "Falha ao enviar teste.");
+    if (error) throw error;
+    if (!data?.sent) throw new Error(data?.error || "Falha ao enviar teste.");
     setStatus("E-mail de teste enviado. Confira sua caixa de entrada.");
   } catch (error) {
     setStatus(await getFunctionErrorMessage(error), true);
