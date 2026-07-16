@@ -5,6 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Validacao | VIII Trilha da Revolucao</title>
   <meta name="description" content="App de validacao de vouchers da VIII Trilha da Revolucao — escaneie o QR Code do voucher no credenciamento e acompanhe inscricoes e lucro.">
+  <meta name="robots" content="noindex, nofollow, noarchive">
   <meta name="theme-color" content="#0b0b0c">
   <link rel="manifest" href="/manifest.webmanifest">
   <link rel="icon" href="/favicon.ico" sizes="48x48">
@@ -102,6 +103,7 @@
 
         <div class="app-card table-card">
           <div class="table-toolbar">
+            <label class="visually-hidden" for="voucher-search">Buscar voucher por nome, codigo ou grupo</label>
             <input type="search" id="voucher-search" placeholder="Buscar nome, codigo ou grupo" autocomplete="off">
             <button type="button" class="button-secondary" id="refresh-vouchers" aria-label="Atualizar lista">
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>

@@ -13,6 +13,7 @@ const requiredFields = [
 ];
 
 export const SHIRT_LIMIT = 200;
+export const PRIVACY_POLICY_VERSION = "2026-07-16";
 
 export async function getShirtAvailability() {
   const supabase = getSupabaseAdmin();
@@ -42,18 +43,23 @@ function cleanText(value, maxLength = 160) {
 }
 
 export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {}) {
+  const tipoSanguineo = cleanText(input.tipo_sanguineo, 20);
   const data = {
     nome_completo: cleanText(input.nome_completo, 180),
     telefone: onlyDigits(input.telefone),
     cpf: onlyDigits(input.cpf),
-    tipo_sanguineo: cleanText(input.tipo_sanguineo, 20),
+    tipo_sanguineo: tipoSanguineo,
     tamanho_camiseta: cleanText(input.tamanho_camiseta, 20),
     grupo: cleanText(input.grupo, 120),
     cidade: cleanText(input.cidade, 120),
     veiculo: cleanText(input.veiculo, 40),
     observacoes: cleanText(input.observacoes, 500),
-    solidaria: Boolean(input.solidaria),
-    termos: Boolean(input.termos),
+    solidaria: input.solidaria === true,
+    termos: input.termos === true,
+    privacidade_aceita_em: input.privacidade === true ? new Date().toISOString() : null,
+    consentimento_saude_aceito_em:
+      tipoSanguineo && tipoSanguineo !== "Nao sei" ? new Date().toISOString() : null,
+    politica_privacidade_versao: PRIVACY_POLICY_VERSION,
   };
 
   for (const field of requiredFields) {
@@ -78,8 +84,8 @@ export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {})
     throw error;
   }
 
-  if (!data.solidaria || !data.termos) {
-    const error = new Error("Confirme os termos para gerar o pagamento.");
+  if (!data.solidaria || !data.termos || !data.privacidade_aceita_em) {
+    const error = new Error("Confirme os termos e o Aviso de Privacidade.");
     error.statusCode = 400;
     throw error;
   }

@@ -2,7 +2,19 @@
 // Estrategia: rede primeiro para navegacao (HTML sempre fresco, com fallback
 // offline) e cache-primeiro com atualizacao em segundo plano para assets, que
 // o Vite versiona por hash no nome do arquivo.
-const CACHE = "trilha-validacao-v2";
+const CACHE = "trilha-validacao-v3";
+
+function isCacheableAsset(request, url) {
+  if (url.pathname.startsWith("/api/")) return false;
+  if (request.cache === "no-store" || request.headers.has("authorization")) return false;
+
+  return (
+    url.pathname.startsWith("/assets/") ||
+    url.pathname.startsWith("/icons/") ||
+    url.pathname === "/manifest.webmanifest" ||
+    ["style", "script", "image", "font", "worker"].includes(request.destination)
+  );
+}
 
 self.addEventListener("install", () => {
   self.skipWaiting();
@@ -19,16 +31,21 @@ self.addEventListener("activate", (event) => {
 
 self.addEventListener("fetch", (event) => {
   const { request } = event;
+  const url = new URL(request.url);
 
-  // So paginas e assets do proprio site; chamadas ao Supabase vao direto.
-  if (request.method !== "GET" || !request.url.startsWith(self.location.origin)) return;
+  // So paginas e assets publicos do proprio site. APIs, requisicoes autenticadas
+  // e respostas marcadas como no-store nunca passam pelo cache offline.
+  if (request.method !== "GET" || url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/") || request.headers.has("authorization")) return;
 
   if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          const copy = response.clone();
-          caches.open(CACHE).then((cache) => cache.put(request, copy));
+          if (response.ok && !response.headers.get("cache-control")?.includes("no-store")) {
+            const copy = response.clone();
+            caches.open(CACHE).then((cache) => cache.put(request, copy));
+          }
           return response;
         })
         // Offline: tenta a propria pagina no cache (ignorando query string,
@@ -42,6 +59,8 @@ self.addEventListener("fetch", (event) => {
     return;
   }
 
+  if (!isCacheableAsset(request, url)) return;
+
   event.respondWith(
     caches.match(request).then((cached) => {
       const fetched = fetch(request)
@@ -52,7 +71,7 @@ self.addEventListener("fetch", (event) => {
           }
           return response;
         })
-        .catch(() => cached);
+        .catch(() => cached || Response.error());
 
       return cached || fetched;
     }),
