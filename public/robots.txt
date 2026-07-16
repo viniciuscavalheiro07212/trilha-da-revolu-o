@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://trilha-da-revolu-o.vercel.app/sitemap.xml
