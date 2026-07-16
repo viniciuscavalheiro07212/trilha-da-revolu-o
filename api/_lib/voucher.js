@@ -84,11 +84,7 @@ export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {})
     throw error;
   }
 
-  if (
-    !data.solidaria ||
-    !data.termos ||
-    !data.privacidade_aceita_em
-  ) {
+  if (!data.solidaria || !data.termos || !data.privacidade_aceita_em) {
     const error = new Error("Confirme os termos e o Aviso de Privacidade.");
     error.statusCode = 400;
     throw error;
