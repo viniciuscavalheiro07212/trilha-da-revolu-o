@@ -26,6 +26,15 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+function formatPhone(value: unknown) {
+  const digits = String(value || "").replace(/\D/g, "");
+  if (digits.length === 11)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+  if (digits.length === 10)
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  return String(value || "-");
+}
+
 function voucherQrPayload(voucher: Record<string, unknown>) {
   return JSON.stringify({
     evento: "VIII Trilha da Revolucao",
@@ -49,6 +58,7 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
   const rows = [
     ["Inscricao", voucher.numero_inscricao || "Em processamento"],
     ["Nome", voucher.nome_completo],
+    ["Telefone", formatPhone(voucher.telefone)],
     ["CPF", voucher.cpf],
     ["Grupo", voucher.grupo],
     ["Cidade", voucher.cidade],
