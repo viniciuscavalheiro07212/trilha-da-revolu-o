@@ -14,6 +14,7 @@ export default defineConfig({
       input: {
         main: fileURLToPath(new URL("./index.html", import.meta.url)),
         inscricao: fileURLToPath(new URL("./inscricao.html", import.meta.url)),
+        testeEmail: fileURLToPath(new URL("./teste-email.html", import.meta.url)),
         validacao: fileURLToPath(new URL("./validacao.html", import.meta.url)),
       },
     },
