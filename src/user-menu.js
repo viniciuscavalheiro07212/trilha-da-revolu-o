@@ -113,8 +113,6 @@ export function initUserMenuToggle() {
   new MutationObserver(() => applyUserMenuState()).observe(document.body, {
     childList: true,
     subtree: true,
-    attributes: true,
-    attributeFilter: ["hidden", "class"],
   });
 }
 

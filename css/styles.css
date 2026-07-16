@@ -170,6 +170,12 @@ button.site-header-08 {
   border-radius:12px;
   box-shadow:0 16px 40px -12px rgba(0,0,0,.85);
 }
+/* O dropdown sempre inicia fechado. Ele so fica visivel depois do clique no
+   botao da conta, que atualiza aria-expanded para true. Isto tambem protege
+   contra a re-renderizacao do cabecalho remover o atributo hidden. */
+.auth-user-trigger[aria-expanded="false"] + .auth-user-menu {
+  display:none!important;
+}
 .auth-user-item {
   display:block;
   width:100%;
