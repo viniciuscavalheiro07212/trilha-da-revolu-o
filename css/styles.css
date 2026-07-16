@@ -15,6 +15,18 @@
     html{scroll-behavior:smooth}
     body{background:#0b0b0c;color:#fff;font-family:'Oswald',sans-serif;-webkit-font-smoothing:antialiased;overflow-x:hidden}
     ::selection{background:#f4c20d;color:#0b0b0c}
+
+.visually-hidden {
+  position:absolute !important;
+  width:1px !important;
+  height:1px !important;
+  padding:0 !important;
+  margin:-1px !important;
+  overflow:hidden !important;
+  clip:rect(0,0,0,0) !important;
+  white-space:nowrap !important;
+  border:0 !important;
+}
     @keyframes dustDrift{0%{transform:translate3d(0,0,0)}100%{transform:translate3d(-60px,12px,0)}}
     @keyframes pulseGlow{0%,100%{box-shadow:0 0 0 0 rgba(244,194,13,.55)}50%{box-shadow:0 0 0 14px rgba(244,194,13,0)}}
     @keyframes flagWave{0%,100%{transform:skewX(0deg)}50%{transform:skewX(-3deg)}}
@@ -1247,6 +1259,7 @@ button.site-header-08 {
   font-size:11px;
   text-align:center;
 }
+.site-footer-10 a{color:inherit;text-underline-offset:3px}.site-footer-10 a:hover,.site-footer-10 a:focus-visible{color:#f4c20d}
 .floating-whatsapp-01 {
   position:fixed;
   right:22px;
@@ -1481,6 +1494,16 @@ button.site-header-08 {
   .hero-11 { gap:10px; }
   .hero-12,
   .hero-20 { width:100%; }
+
+  /* Contagem cabe integralmente em celulares de 320 px. */
+  .hero-26 { width:100%; flex-direction:column; align-items:stretch; gap:7px; }
+  .hero-27 { writing-mode:horizontal-tb; transform:none; }
+  .hero-28 { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:6px; width:100%; }
+  .hero-29 { min-width:0; padding:8px 3px; }
+  .hero-30,
+  .hero-32,
+  .hero-33 { font-size:26px; }
+  .hero-31 { font-size:10px; letter-spacing:.1em; }
 
   /* Grade de beneficios: 3 -> 2 colunas */
   .registration-18 { grid-template-columns:repeat(2,1fr); }

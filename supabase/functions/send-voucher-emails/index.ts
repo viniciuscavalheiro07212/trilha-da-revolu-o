@@ -1,7 +1,9 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+import { createClient } from "@supabase/supabase-js";
+import QRCode from "qrcode";
 
 const resendEndpoint = "https://api.resend.com/emails";
+const voucherQrContentId = "voucher-qr-code";
 const approvedPaymentStatuses = ["approved", "processed", "completed"];
 const corsHeaders = {
   "Access-Control-Allow-Origin": Deno.env.get("SITE_URL") || "*",
@@ -46,15 +48,22 @@ function voucherQrPayload(voucher: Record<string, unknown>) {
   });
 }
 
-function voucherQrCodeUrl(voucher: Record<string, unknown>) {
-  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&format=png&margin=10&data=${encodeURIComponent(voucherQrPayload(voucher))}`;
+async function voucherQrCodeBase64(voucher: Record<string, unknown>) {
+  const dataUrl = await QRCode.toDataURL(voucherQrPayload(voucher), {
+    type: "image/png",
+    width: 240,
+    margin: 1,
+    errorCorrectionLevel: "M",
+  });
+  const prefix = "data:image/png;base64,";
+  if (!dataUrl.startsWith(prefix)) throw new Error("Falha ao gerar o QR Code do voucher.");
+  return dataUrl.slice(prefix.length);
 }
 
 function voucherEmailHtml(voucher: Record<string, unknown>) {
   const siteUrl = Deno.env.get("SITE_URL")?.replace(/\/$/, "");
   const voucherUrl = siteUrl ? `${siteUrl}/inscricao.html?vouchers=1` : "";
   const voucherCode = escapeHtml(voucher.voucher_codigo);
-  const qrCodeUrl = voucherQrCodeUrl(voucher);
   const rows = [
     ["Inscricao", voucher.numero_inscricao || "Em processamento"],
     ["Nome", voucher.nome_completo],
@@ -87,7 +96,7 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
         <div style="padding:18px;border:1px solid #d8d2c1;border-radius:12px;background:#ffffff">
           <div style="color:#717171;font-size:11px;font-weight:700;letter-spacing:1.5px">CÓDIGO DO VOUCHER</div>
           <div style="margin-top:6px;color:#111111;font-size:25px;font-weight:700;letter-spacing:1px">${voucherCode}</div>
-          <img src="${escapeHtml(qrCodeUrl)}" width="180" height="180" alt="QR Code do voucher ${voucherCode}" style="display:block;width:180px;height:180px;margin:18px auto 6px;border:0" />
+          <img src="cid:${voucherQrContentId}" width="180" height="180" alt="QR Code do voucher ${voucherCode}" style="display:block;width:180px;height:180px;margin:18px auto 6px;border:0" />
           <div style="color:#606060;font-size:13px;line-height:1.4">Apresente este QR Code no credenciamento.</div>
         </div>
       </td></tr>
@@ -111,6 +120,7 @@ async function sendVoucherEmail(voucher: Record<string, unknown>) {
   const from = Deno.env.get("VOUCHER_EMAIL_FROM");
   const replyTo = Deno.env.get("VOUCHER_EMAIL_REPLY_TO");
   if (!apiKey || !from) throw new Error("RESEND_API_KEY ou VOUCHER_EMAIL_FROM nao configurado.");
+  const qrCodeBase64 = await voucherQrCodeBase64(voucher);
 
   const response = await fetch(resendEndpoint, {
     method: "POST",
@@ -120,6 +130,14 @@ async function sendVoucherEmail(voucher: Record<string, unknown>) {
       to: [voucher.usuario_email],
       subject: `Voucher ${voucher.voucher_codigo} - VIII Trilha da Revolucao`,
       html: voucherEmailHtml(voucher),
+      attachments: [
+        {
+          content: qrCodeBase64,
+          filename: "voucher-qr-code.png",
+          content_id: voucherQrContentId,
+          content_type: "image/png",
+        },
+      ],
       ...(replyTo ? { reply_to: replyTo } : {}),
     }),
   });

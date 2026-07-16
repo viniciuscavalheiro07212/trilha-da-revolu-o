@@ -207,6 +207,7 @@ const requiredFields = [
 const requiredChecks = [
   ["solidaria", "Voce precisa marcar esta opcao para gerar o voucher."],
   ["termos", "Voce precisa marcar esta opcao para gerar o voucher."],
+  ["privacidade", "Leia e confirme o Aviso de Privacidade para continuar."],
 ];
 
 function validateForm() {
@@ -290,6 +291,7 @@ function formToData(formElement) {
   data.cpf = onlyDigits(data.cpf);
   data.solidaria = formData.has("solidaria");
   data.termos = formData.has("termos");
+  data.privacidade = formData.has("privacidade");
 
   return data;
 }

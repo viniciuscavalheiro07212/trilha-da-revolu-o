@@ -102,8 +102,9 @@
               <option>AB-</option>
               <option>O+</option>
               <option>O-</option>
-              <option>Nao sei</option>
+              <option value="Nao sei">Prefiro nao informar / Nao sei</option>
             </select>
+            <span class="sensitive-data-note">Ao escolher um tipo sanguineo, voce autoriza o uso desse dado somente para identificacao e apoio em eventual emergencia no evento.</span>
           </label>
           <label id="shirt-size-field">
             Tamanho da camiseta
@@ -166,11 +167,17 @@
           </details>
         </div>
 
+        <label class="checkbox-line">
+          <input type="checkbox" name="privacidade" required>
+          <span>Li o <a class="inline-policy-link" href="privacidade.html" target="_blank" rel="noopener">Aviso de Privacidade</a> e estou ciente de como meus dados serao utilizados para a inscricao e realizacao do evento.</span>
+        </label>
+
         <div class="form-actions">
           <button type="submit">Ir para pagamento Pix</button>
           <a href="https://wa.me/5551993725451" target="_blank" rel="noopener">Falar no WhatsApp</a>
         </div>
         <p class="form-note" id="form-status" role="status"></p>
+        <p class="privacy-shortcut">Duvidas sobre seus dados? Consulte o <a href="privacidade.html">Aviso de Privacidade</a> ou fale com a organizacao.</p>
       </form>
 
     </section>
