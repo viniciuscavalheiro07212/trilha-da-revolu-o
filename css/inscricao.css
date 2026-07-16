@@ -21,5 +21,6 @@
 .field-error{color:#ff5a63;font-family:var(--font-body);font-size:13px;font-weight:600;letter-spacing:normal;text-transform:none;line-height:1.35}
 .signup-form label.is-invalid input,.signup-form label.is-invalid select,.signup-form label.is-invalid textarea{border-color:#cf1f2a;box-shadow:0 0 0 3px rgba(207,31,42,.18)}
 .checkbox-line.is-invalid{border-color:#cf1f2a;background:rgba(207,31,42,.08)}
+.checkbox-terms{display:grid}.checkbox-terms>label{display:block}.terms-details{grid-column:2;margin-top:-4px;color:#cfcfcf;font-family:var(--font-body);font-size:14px;font-weight:400;letter-spacing:normal;text-transform:none}.terms-details summary{width:max-content;color:#f4c20d;font-family:var(--font-condensed);font-size:14px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;cursor:pointer}.terms-details>div{display:grid;gap:10px;margin-top:12px;padding:14px;border-left:2px solid #f4c20d;border-radius:0 8px 8px 0;background:rgba(0,0,0,.22);line-height:1.5}.terms-details p{margin:0}
 .checkbox-line .field-error{grid-column:1/-1}
 .form-note.is-error{color:#ff5a63;font-weight:700}

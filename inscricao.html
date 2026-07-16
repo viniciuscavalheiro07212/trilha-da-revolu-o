@@ -150,10 +150,20 @@
           Confirmo que levarei 1kg de alimento nao perecivel e um agasalho para retirar a pulseira.
         </label>
 
-        <label class="checkbox-line">
-          <input type="checkbox" name="termos" required>
-          Conferi meus dados e entendo que o voucher deve ser apresentado no evento.
-        </label>
+        <div class="checkbox-line checkbox-terms">
+          <input id="termos" type="checkbox" name="termos" required>
+          <label for="termos">Termos de responsabilidade</label>
+          <details class="terms-details">
+            <summary>Ver mais</summary>
+            <div>
+              <p>Declaro estar em plenas condições de saúde, física e mental, e apto(a) a participar deste evento esportivo, assumindo integral responsabilidade por minha participação.</p>
+              <p>Estou ciente de que é obrigatório o uso de equipamentos de segurança adequados. A ausência desses equipamentos poderá impedir minha participação no evento.</p>
+              <p>Reconheço que o percurso ocorre em áreas rurais e pode apresentar riscos inerentes, incluindo trânsito de veículos motorizados, presença de animais e pessoas, buracos, cascalhos, trilhas irregulares e outros obstáculos naturais. Declaro estar ciente de que minha condição física, atenção e conduta durante o evento são de minha inteira responsabilidade.</p>
+              <p>Isento os organizadores, apoiadores e patrocinadores de responsabilidade por eventuais acidentes, danos materiais ou pessoais decorrentes da minha participação, exceto nos casos previstos em lei.</p>
+              <p>Autorizo, de forma gratuita, os organizadores e patrocinadores a utilizarem fotografias, vídeos e outros registros de imagem que incluam minha participação, para fins de divulgação do evento, sem limite de tempo ou território.</p>
+            </div>
+          </details>
+        </div>
 
         <div class="form-actions">
           <button type="submit">Ir para pagamento Pix</button>
