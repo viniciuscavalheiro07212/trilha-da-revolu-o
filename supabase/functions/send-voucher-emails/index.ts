@@ -19,6 +19,10 @@ function escapeHtml(value: unknown) {
   );
 }
 
+function makeHtmlEncodingSafe(value: string) {
+  return value.replace(/[^\u0000-\u007f]/gu, (character) => `&#${character.codePointAt(0)};`);
+}
+
 function formatDate(value: string | null) {
   if (!value) return "-";
   return new Intl.DateTimeFormat("pt-BR", {
@@ -81,8 +85,14 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
     )
     .join("");
 
-  return `<!doctype html>
-<html lang="pt-BR"><body style="margin:0;background:#111111;font-family:Arial,sans-serif;color:#191919">
+  return makeHtmlEncodingSafe(`<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+</head>
+<body style="margin:0;background:#111111;font-family:Arial,sans-serif;color:#191919">
   <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#111111;padding:28px 12px"><tr><td align="center">
     <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#f8f6ed;border-radius:16px;overflow:hidden">
       <tr><td style="padding:28px 32px;background:#0b0b0c;border-bottom:4px solid #f4c20d;text-align:center">
@@ -106,13 +116,13 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
       </td></tr>
       ${voucher.camiseta_garantida ? '<tr><td style="padding:0 32px 14px"><div style="padding:14px;border-radius:10px;background:#188a3a;color:#ffffff;font-size:14px;font-weight:700;line-height:1.4">Camiseta garantida para esta inscrição. Retire-a no credenciamento.</div></td></tr>' : ""}
       <tr><td style="padding:8px 32px 30px;text-align:center">
-        <p style="margin:0 0 18px;color:#555555;font-size:14px;line-height:1.5">Para retirar a pulseira, leve este voucher, o comprovante do Pix, 1 kg de alimento não perecível e um agasalho.</p>
+        <p style="margin:0 0 18px;color:#555555;font-size:14px;line-height:1.5">Para retirar a pulseira, leve este voucher, 1 kg de alimento não perecível e um agasalho.</p>
         ${voucherUrl ? `<a href="${escapeHtml(voucherUrl)}" style="display:inline-block;padding:14px 22px;border-radius:8px;background:#f4c20d;color:#111111;font-size:14px;font-weight:700;text-decoration:none">ABRIR MEUS VOUCHERS</a>` : ""}
         <p style="margin:22px 0 0;color:#555555;font-size:14px;line-height:1.5">Precisa de ajuda? Fale com a organização pelo WhatsApp:<br><a href="https://wa.me/5551993725451" style="color:#188a3a;font-weight:700;text-decoration:none">+55 (51) 99372-5451</a></p>
       </td></tr>
     </table>
   </td></tr></table>
-</body></html>`;
+</body></html>`);
 }
 
 async function sendVoucherEmail(voucher: Record<string, unknown>) {
