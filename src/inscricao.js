@@ -11,11 +11,38 @@ const paymentPanel = document.querySelector("#payment-panel");
 const status = document.querySelector("#form-status");
 const tabButtons = document.querySelectorAll("[data-tab-target]");
 const tabPanels = document.querySelectorAll(".tab-panel");
+const shirtSizeInput = form.elements.tamanho_camiseta;
+const shirtStockNote = document.querySelector("#shirt-stock-note");
 const vouchers = [];
 let currentSession = null;
 let pendingPayment = null;
 let paymentPolling = null;
 let isConfirmingPayment = false;
+let shirtAvailable = true;
+
+async function loadShirtAvailability() {
+  try {
+    const response = await fetch("/api/camisetas/status", { cache: "no-store" });
+    if (!response.ok) throw new Error("Falha ao consultar a cota de camisetas.");
+
+    const availability = await response.json();
+    shirtAvailable = Boolean(availability.available);
+    shirtSizeInput.required = shirtAvailable;
+    shirtSizeInput.disabled = !currentSession || !shirtAvailable;
+
+    if (!shirtAvailable) {
+      shirtSizeInput.value = "";
+      shirtStockNote.textContent =
+        "Camisetas esgotadas. A inscricao e a compra do ingresso continuam disponiveis.";
+      return;
+    }
+
+    shirtStockNote.textContent = `Camiseta garantida para os ${availability.limit || 200} primeiros pagamentos confirmados.`;
+  } catch (error) {
+    console.error(error);
+    shirtStockNote.textContent = "O tamanho da camiseta sera confirmado apos o pagamento.";
+  }
+}
 
 const eventInfo = {
   nome: "VIII Trilha da Revolucao",
@@ -58,6 +85,7 @@ function updateAuthUi(session) {
   Array.from(form.elements).forEach((element) => {
     element.disabled = !isLoggedIn;
   });
+  shirtSizeInput.disabled = !isLoggedIn || !shirtAvailable;
 
   // renderUserMenu tambem cuida da visibilidade dos botoes de login/logout e
   // do link de vouchers no cabecalho.
@@ -97,6 +125,7 @@ async function initAuth() {
   updateAuthUi(data?.session || null);
 
   if (data?.session) {
+    await loadShirtAvailability();
     await loadSavedVouchers();
 
     const params = new URLSearchParams(window.location.search);
@@ -131,6 +160,7 @@ async function initAuth() {
     // setTimeout evita chamar o Supabase dentro do callback de auth,
     // o que pode causar deadlock (recomendacao da propria documentacao).
     setTimeout(async () => {
+      await loadShirtAvailability();
       await loadSavedVouchers();
 
       if (sessionStorage.getItem(RETURN_TAB_KEY)) {
@@ -169,7 +199,6 @@ const requiredFields = [
   ["telefone", "Preencha o telefone."],
   ["cpf", "Preencha o CPF."],
   ["tipo_sanguineo", "Selecione o tipo sanguineo."],
-  ["tamanho_camiseta", "Selecione o tamanho da camiseta."],
   ["grupo", "Preencha o grupo que pertence."],
   ["cidade", "Preencha a cidade."],
   ["veiculo", "Selecione o veiculo."],
@@ -184,7 +213,11 @@ function validateForm() {
   clearFieldErrors();
   const invalid = [];
 
-  requiredFields.forEach(([name, message]) => {
+  const fieldsToValidate = shirtAvailable
+    ? [...requiredFields, ["tamanho_camiseta", "Selecione o tamanho da camiseta."]]
+    : requiredFields;
+
+  fieldsToValidate.forEach(([name, message]) => {
     const element = form.elements[name];
     if (!String(element.value || "").trim()) {
       setFieldError(element, message);
@@ -423,6 +456,7 @@ async function renderVouchers() {
   document.querySelector("#clear-vouchers").addEventListener("click", () => {
     vouchers.splice(0, vouchers.length);
     form.reset();
+    loadShirtAvailability();
     emptyVoucher();
     status.textContent = "";
     activateTab("inscricao");
@@ -501,6 +535,7 @@ async function finishPaidVoucher() {
     showPaymentTab(false);
     emptyPayment();
     form.reset();
+    await loadShirtAvailability();
     activateTab("vouchers");
     form.querySelector("[name='nome_completo']").focus();
     status.textContent = `Voucher ${voucher.voucher_codigo} gerado apos confirmacao do pagamento.`;
@@ -646,4 +681,5 @@ form.addEventListener("submit", async (event) => {
 
 showPaymentTab(false);
 emptyPayment();
+loadShirtAvailability();
 initAuth();

@@ -1,7 +1,11 @@
 import { createPixOrder } from "../_lib/mercadopago.js";
 import { getAuthenticatedUser } from "../_lib/supabase-admin.js";
 import { handleApiError, methodNotAllowed, readJsonBody, sendJson } from "../_lib/http.js";
-import { sanitizeRegistration, savePendingPixPayment } from "../_lib/voucher.js";
+import {
+  getShirtAvailability,
+  sanitizeRegistration,
+  savePendingPixPayment,
+} from "../_lib/voucher.js";
 
 export default async function handler(request, response) {
   if (request.method !== "POST") {
@@ -12,7 +16,10 @@ export default async function handler(request, response) {
   try {
     const user = await getAuthenticatedUser(request);
     const body = await readJsonBody(request);
-    const registration = sanitizeRegistration(body.registration);
+    const shirtAvailability = await getShirtAvailability();
+    const registration = sanitizeRegistration(body.registration, {
+      shirtAvailable: shirtAvailability.available,
+    });
     const payment = await createPixOrder({ user, registration });
     await savePendingPixPayment({
       user,

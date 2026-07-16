@@ -17,7 +17,9 @@ async function getFunctionErrorMessage(error) {
   const response = error?.context;
   if (response && typeof response.json === "function") {
     try {
-      const body = await (typeof response.clone === "function" ? response.clone() : response).json();
+      const body = await (
+        typeof response.clone === "function" ? response.clone() : response
+      ).json();
       if (typeof body?.error === "string") return body.error;
       if (typeof body?.message === "string") return body.message;
     } catch {
