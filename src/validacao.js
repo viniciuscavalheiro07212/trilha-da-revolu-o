@@ -38,6 +38,9 @@ const priceInput = document.querySelector("#price-input");
 const profitCards = document.querySelector("#profit-cards");
 const profitRows = document.querySelector("#profit-rows");
 const profitStatus = document.querySelector("#profit-status");
+const shirtCounters = document.querySelector("#shirt-counters");
+const shirtRows = document.querySelector("#shirt-rows");
+const shirtStatus = document.querySelector("#shirt-status");
 
 const brl = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
 const dataHora = new Intl.DateTimeFormat("pt-BR", { dateStyle: "short", timeStyle: "short" });
@@ -77,6 +80,8 @@ function activateTab(target) {
   if (target !== "validar" && cameraLigada) {
     stopCamera();
   }
+
+  if (target === "camisetas") renderShirtSummary();
 }
 
 // ---------------------------------------------------------------------------
@@ -329,6 +334,7 @@ async function loadInscricoes() {
     tableStatus.textContent = "";
     renderTable();
     renderProfit();
+    renderShirtSummary();
   } catch (error) {
     console.error(error);
     tableStatus.textContent = "Nao foi possivel carregar as inscricoes.";
@@ -386,6 +392,37 @@ function renderTable() {
       `;
     })
     .join("");
+}
+
+// ---------------------------------------------------------------------------
+// Camisetas
+// ---------------------------------------------------------------------------
+
+function renderShirtSummary() {
+  const sizes = ["PP", "P", "M", "G", "GG", "XG", "XXG"];
+  const guaranteed = inscricoes.filter((item) => item.camiseta_garantida);
+  const quantities = new Map(sizes.map((size) => [size, 0]));
+
+  guaranteed.forEach((item) => {
+    const size = String(item.tamanho_camiseta || "").trim().toUpperCase();
+    if (quantities.has(size)) quantities.set(size, quantities.get(size) + 1);
+  });
+
+  const withoutSize = guaranteed.filter((item) => !String(item.tamanho_camiseta || "").trim()).length;
+  const remaining = Math.max(0, 200 - guaranteed.length);
+
+  shirtCounters.innerHTML = `
+    <div><span>Reservadas</span><strong>${guaranteed.length}/200</strong></div>
+    <div><span>Restantes</span><strong>${remaining}</strong></div>
+  `;
+  shirtRows.innerHTML = sizes
+    .map((size) => `<tr><td>${size}</td><td>${quantities.get(size)}</td></tr>`)
+    .join("");
+  shirtStatus.textContent = withoutSize
+    ? `${withoutSize} camiseta(s) garantida(s) ainda sem tamanho informado.`
+    : remaining === 0
+      ? "Camisetas esgotadas. As inscricoes continuam disponiveis."
+      : "Atualizado conforme os pagamentos confirmados.";
 }
 
 // ---------------------------------------------------------------------------

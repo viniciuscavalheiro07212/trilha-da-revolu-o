@@ -7,11 +7,29 @@ const requiredFields = [
   "telefone",
   "cpf",
   "tipo_sanguineo",
-  "tamanho_camiseta",
   "grupo",
   "cidade",
   "veiculo",
 ];
+
+export const SHIRT_LIMIT = 200;
+
+export async function getShirtAvailability() {
+  const supabase = getSupabaseAdmin();
+  const { count, error } = await supabase
+    .from("inscricoes")
+    .select("id", { count: "exact", head: true })
+    .eq("camiseta_garantida", true);
+
+  if (error) throw error;
+
+  const reserved = Number(count || 0);
+  return {
+    available: reserved < SHIRT_LIMIT,
+    reserved,
+    limit: SHIRT_LIMIT,
+  };
+}
 
 function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
@@ -23,7 +41,7 @@ function cleanText(value, maxLength = 160) {
     .slice(0, maxLength);
 }
 
-export function sanitizeRegistration(input = {}) {
+export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {}) {
   const data = {
     nome_completo: cleanText(input.nome_completo, 180),
     telefone: onlyDigits(input.telefone),
@@ -45,6 +63,14 @@ export function sanitizeRegistration(input = {}) {
       throw error;
     }
   }
+
+  if (shirtAvailable && !data.tamanho_camiseta) {
+    const error = new Error("Selecione o tamanho da camiseta.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (!shirtAvailable) data.tamanho_camiseta = "";
 
   if (data.telefone.length < 8) {
     const error = new Error("Telefone invalido.");

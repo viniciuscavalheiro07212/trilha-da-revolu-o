@@ -2,7 +2,7 @@
 // Estrategia: rede primeiro para navegacao (HTML sempre fresco, com fallback
 // offline) e cache-primeiro com atualizacao em segundo plano para assets, que
 // o Vite versiona por hash no nome do arquivo.
-const CACHE = "trilha-validacao-v1";
+const CACHE = "trilha-validacao-v2";
 
 self.addEventListener("install", () => {
   self.skipWaiting();

@@ -1,7 +1,7 @@
 {
   "name": "Validacao - VIII Trilha da Revolucao",
   "short_name": "Trilha Validacao",
-  "description": "Validacao de vouchers, tabela de inscricoes e lucro da VIII Trilha da Revolucao.",
+  "description": "Validacao de vouchers, inscricoes, camisetas e financeiro da VIII Trilha da Revolucao.",
   "lang": "pt-BR",
   "start_url": "/validacao.html",
   "scope": "/",
