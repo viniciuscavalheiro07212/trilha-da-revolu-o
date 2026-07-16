@@ -18,7 +18,9 @@ export default async function handler(request, response) {
     const body = await readJsonBody(request);
     const shirtAvailability = await getShirtAvailability();
     const registration = sanitizeRegistration(body.registration, {
-      shirtAvailable: shirtAvailability.available,
+      availableShirtSizes: Object.entries(shirtAvailability.sizes)
+        .filter(([, available]) => available)
+        .map(([size]) => size),
     });
     const payment = await createPixOrder({ user, registration });
     await savePendingPixPayment({

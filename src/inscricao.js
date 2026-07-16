@@ -20,6 +20,22 @@ let paymentPolling = null;
 let isConfirmingPayment = false;
 let shirtAvailable = true;
 
+function updateShirtSizeOptions(availability) {
+  const availableBySize = availability.sizes || {};
+
+  Array.from(shirtSizeInput.options).forEach((option) => {
+    if (!option.value) return;
+
+    const isAvailable = Boolean(availableBySize[option.value]);
+    option.disabled = !isAvailable;
+    option.textContent = isAvailable ? option.value : `${option.value} (Esgotada)`;
+
+    if (!isAvailable && shirtSizeInput.value === option.value) {
+      shirtSizeInput.value = "";
+    }
+  });
+}
+
 async function loadShirtAvailability() {
   try {
     const response = await fetch("/api/camisetas/status", { cache: "no-store" });
@@ -27,17 +43,18 @@ async function loadShirtAvailability() {
 
     const availability = await response.json();
     shirtAvailable = Boolean(availability.available);
+    updateShirtSizeOptions(availability);
     shirtSizeInput.required = shirtAvailable;
     shirtSizeInput.disabled = !currentSession || !shirtAvailable;
 
     if (!shirtAvailable) {
       shirtSizeInput.value = "";
       shirtStockNote.textContent =
-        "Camisetas esgotadas. A inscricao e a compra do ingresso continuam disponiveis.";
+        "Esgotado. A inscricao e a compra do ingresso continuam disponiveis.";
       return;
     }
 
-    shirtStockNote.textContent = `Camiseta garantida para os ${availability.limit || 200} primeiros pagamentos confirmados.`;
+    shirtStockNote.textContent = "Escolha um dos tamanhos disponiveis.";
   } catch (error) {
     console.error(error);
     shirtStockNote.textContent = "O tamanho da camiseta sera confirmado apos o pagamento.";
@@ -175,6 +192,24 @@ function onlyDigits(value) {
   return String(value || "").replace(/\D/g, "");
 }
 
+function formatPhone(value) {
+  const digits = onlyDigits(value).slice(0, 11);
+  if (digits.length <= 2) return digits ? `(${digits}` : "";
+  if (digits.length <= 6) return `(${digits.slice(0, 2)}) ${digits.slice(2)}`;
+  if (digits.length <= 10) {
+    return `(${digits.slice(0, 2)}) ${digits.slice(2, 6)}-${digits.slice(6)}`;
+  }
+  return `(${digits.slice(0, 2)}) ${digits.slice(2, 7)}-${digits.slice(7)}`;
+}
+
+function formatCpf(value) {
+  const digits = onlyDigits(value).slice(0, 11);
+  return digits
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d)/, "$1.$2")
+    .replace(/(\d{3})(\d{1,2})$/, "$1-$2");
+}
+
 function setFieldError(element, message) {
   const label = element.closest("label");
   if (!label) return;
@@ -195,7 +230,6 @@ function clearFieldErrors() {
 // Todos os campos sao obrigatorios, exceto "observacoes".
 const requiredFields = [
   ["nome_completo", "Preencha o nome completo."],
-  ["ddd", "Preencha o DDD."],
   ["telefone", "Preencha o telefone."],
   ["cpf", "Preencha o CPF."],
   ["tipo_sanguineo", "Selecione o tipo sanguineo."],
@@ -226,16 +260,10 @@ function validateForm() {
     }
   });
 
-  const ddd = form.elements.ddd;
   const telefone = form.elements.telefone;
-  const dddDigits = onlyDigits(ddd.value);
   const telefoneDigits = onlyDigits(telefone.value);
-  if (ddd.value.trim() && dddDigits.length !== 2) {
-    setFieldError(ddd, "DDD invalido: informe 2 digitos.");
-    invalid.push(ddd);
-  }
-  if (telefone.value.trim() && (telefoneDigits.length < 8 || telefoneDigits.length > 9)) {
-    setFieldError(telefone, "Celular invalido: informe 8 ou 9 digitos.");
+  if (telefone.value.trim() && (telefoneDigits.length < 10 || telefoneDigits.length > 11)) {
+    setFieldError(telefone, "Celular invalido: informe DDD e o numero do celular.");
     invalid.push(telefone);
   }
 
@@ -286,8 +314,7 @@ function formToData(formElement) {
   const formData = new FormData(formElement);
   const data = Object.fromEntries(formData.entries());
 
-  data.telefone = `${onlyDigits(data.ddd)}${onlyDigits(data.telefone)}`;
-  delete data.ddd;
+  data.telefone = onlyDigits(data.telefone);
   data.cpf = onlyDigits(data.cpf);
   data.solidaria = formData.has("solidaria");
   data.termos = formData.has("termos");
@@ -310,7 +337,7 @@ function emptyVoucher() {
     <div class="voucher-empty">
       <span>Meus vouchers</span>
       <strong>Preencha o formulario para gerar sua inscricao.</strong>
-      <p>Depois de gerar, o voucher aparece aqui com QR Code, codigo unico e aviso sobre a camiseta dos 200 primeiros inscritos.</p>
+      <p>Depois de gerar, o voucher aparece aqui com QR Code, codigo unico e as informacoes da camiseta.</p>
     </div>
   `;
 }
@@ -331,14 +358,14 @@ function camisetaMessage(data) {
   const tamanho = data.tamanho_camiseta ? ` (tamanho ${data.tamanho_camiseta})` : "";
 
   if (data.camiseta_garantida === true) {
-    return `Camiseta garantida${tamanho}: este voucher esta entre os 200 primeiros inscritos. Retire a camiseta no credenciamento.`;
+    return `Camiseta garantida${tamanho}. Retire a camiseta no credenciamento.`;
   }
 
   if (data.camiseta_garantida === false) {
-    return "Cota de camisetas encerrada: os 200 primeiros vouchers ja foram gerados.";
+    return "Camiseta esgotada para esta inscricao.";
   }
 
-  return "Os 200 primeiros vouchers gerados ganham camiseta. Confirme a posicao no credenciamento.";
+  return "A disponibilidade da camiseta sera confirmada ao emitir o voucher.";
 }
 
 function validationMessage(data) {
@@ -415,7 +442,7 @@ async function voucherCard(data, index) {
             ${escapeHtml(camisetaMessage(data))}
           </div>
           <div class="voucher-alert">
-            Para retirar a pulseira: apresentar este voucher, comprovante do PIX, 1kg de alimento nao perecivel e um agasalho.
+            Para retirar a pulseira: apresentar este voucher, 1kg de alimento nao perecivel e um agasalho.
           </div>
           ${
             data.validado_em
@@ -636,6 +663,14 @@ initUserMenuToggle();
 
 // Remove o aviso vermelho do campo assim que a pessoa comeca a corrigir.
 form.addEventListener("input", (event) => {
+  if (event.target.name === "telefone") {
+    event.target.value = formatPhone(event.target.value);
+  }
+
+  if (event.target.name === "cpf") {
+    event.target.value = formatCpf(event.target.value);
+  }
+
   const label = event.target.closest("label");
   if (!label || !label.classList.contains("is-invalid")) return;
 

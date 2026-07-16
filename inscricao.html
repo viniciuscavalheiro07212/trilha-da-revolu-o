@@ -76,16 +76,12 @@
 
         <div class="form-grid form-grid-phone">
           <label>
-            DDD
-            <input name="ddd" inputmode="numeric" autocomplete="tel-area-code" maxlength="2" placeholder="51" required>
-          </label>
-          <label>
             Celular
-            <input name="telefone" inputmode="tel" autocomplete="tel-national" placeholder="99999-9999" required>
+            <input name="telefone" inputmode="tel" autocomplete="tel-national" maxlength="15" required>
           </label>
           <label>
             CPF
-            <input name="cpf" inputmode="numeric" required>
+            <input name="cpf" inputmode="numeric" autocomplete="off" maxlength="14" required>
           </label>
         </div>
 
@@ -110,15 +106,15 @@
             Tamanho da camiseta
             <select name="tamanho_camiseta" required>
               <option value="">Selecione</option>
-              <option>PP</option>
               <option>P</option>
               <option>M</option>
               <option>G</option>
               <option>GG</option>
-              <option>XG</option>
-              <option>XXG</option>
+              <option>G1</option>
+              <option>G2</option>
+              <option>G3</option>
             </select>
-            <span class="shirt-stock-note" id="shirt-stock-note" role="status">Camiseta garantida para os 200 primeiros pagamentos confirmados.</span>
+            <span class="shirt-stock-note" id="shirt-stock-note" role="status">Escolha o tamanho da sua camiseta.</span>
           </label>
         </div>
 
@@ -144,7 +140,7 @@
 
         <label>
           Observacoes
-          <textarea name="observacoes" rows="3" placeholder="Contato de emergencia, restricao alimentar ou observacao importante"></textarea>
+          <textarea name="observacoes" rows="3"></textarea>
         </label>
 
         <label class="checkbox-line">

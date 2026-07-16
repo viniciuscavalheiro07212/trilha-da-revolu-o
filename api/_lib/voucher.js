@@ -12,23 +12,38 @@ const requiredFields = [
   "veiculo",
 ];
 
-export const SHIRT_LIMIT = 200;
+export const SHIRT_STOCK = Object.freeze({
+  P: 15,
+  M: 30,
+  G: 56,
+  GG: 59,
+  G1: 25,
+  G2: 11,
+  G3: 4,
+});
+export const SHIRT_SIZES = Object.freeze(Object.keys(SHIRT_STOCK));
 export const PRIVACY_POLICY_VERSION = "2026-07-16";
 
 export async function getShirtAvailability() {
   const supabase = getSupabaseAdmin();
-  const { count, error } = await supabase
-    .from("inscricoes")
-    .select("id", { count: "exact", head: true })
-    .eq("camiseta_garantida", true);
+  const { data, error } = await supabase
+    .from("camiseta_estoque")
+    .select("tamanho, limite, reservadas");
 
   if (error) throw error;
 
-  const reserved = Number(count || 0);
+  const stockBySize = new Map(
+    (data || []).map((item) => [String(item.tamanho || "").toUpperCase(), item]),
+  );
+  const sizes = Object.fromEntries(
+    SHIRT_SIZES.map((size) => {
+      const stock = stockBySize.get(size);
+      return [size, Boolean(stock && Number(stock.reservadas) < Number(stock.limite))];
+    }),
+  );
   return {
-    available: reserved < SHIRT_LIMIT,
-    reserved,
-    limit: SHIRT_LIMIT,
+    available: Object.values(sizes).some(Boolean),
+    sizes,
   };
 }
 
@@ -42,7 +57,7 @@ function cleanText(value, maxLength = 160) {
     .slice(0, maxLength);
 }
 
-export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {}) {
+export function sanitizeRegistration(input = {}, { availableShirtSizes = [] } = {}) {
   const tipoSanguineo = cleanText(input.tipo_sanguineo, 20);
   const data = {
     nome_completo: cleanText(input.nome_completo, 180),
@@ -70,13 +85,28 @@ export function sanitizeRegistration(input = {}, { shirtAvailable = true } = {})
     }
   }
 
-  if (shirtAvailable && !data.tamanho_camiseta) {
+  data.tamanho_camiseta = data.tamanho_camiseta.toUpperCase();
+  const hasShirtsAvailable = availableShirtSizes.length > 0;
+
+  if (hasShirtsAvailable && !data.tamanho_camiseta) {
     const error = new Error("Selecione o tamanho da camiseta.");
     error.statusCode = 400;
     throw error;
   }
 
-  if (!shirtAvailable) data.tamanho_camiseta = "";
+  if (!hasShirtsAvailable) data.tamanho_camiseta = "";
+
+  if (data.tamanho_camiseta && !SHIRT_SIZES.includes(data.tamanho_camiseta)) {
+    const error = new Error("Selecione um tamanho de camiseta valido.");
+    error.statusCode = 400;
+    throw error;
+  }
+
+  if (data.tamanho_camiseta && !availableShirtSizes.includes(data.tamanho_camiseta)) {
+    const error = new Error("Este tamanho de camiseta esta esgotado. Escolha outro tamanho.");
+    error.statusCode = 409;
+    throw error;
+  }
 
   if (data.telefone.length < 8) {
     const error = new Error("Telefone invalido.");

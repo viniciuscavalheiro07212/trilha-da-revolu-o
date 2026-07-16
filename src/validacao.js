@@ -399,7 +399,7 @@ function renderTable() {
 // ---------------------------------------------------------------------------
 
 function renderShirtSummary() {
-  const sizes = ["PP", "P", "M", "G", "GG", "XG", "XXG"];
+  const sizes = ["P", "M", "G", "GG", "G1", "G2", "G3"];
   const guaranteed = inscricoes.filter((item) => item.camiseta_garantida);
   const quantities = new Map(sizes.map((size) => [size, 0]));
 
