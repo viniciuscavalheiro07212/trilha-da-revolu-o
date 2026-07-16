@@ -12,9 +12,8 @@ function escapeHtml(value: unknown) {
   return String(value ?? "").replace(
     /[&<>'"]/g,
     (character) =>
-      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[
-        character
-      ] ?? character,
+      ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", "'": "&#39;", '"': "&quot;" })[character] ??
+      character,
   );
 }
 
@@ -27,9 +26,26 @@ function formatDate(value: string | null) {
   }).format(new Date(value));
 }
 
+function voucherQrPayload(voucher: Record<string, unknown>) {
+  return JSON.stringify({
+    evento: "VIII Trilha da Revolucao",
+    voucher: voucher.voucher_codigo,
+    inscricao: voucher.numero_inscricao || null,
+    nome: voucher.nome_completo,
+    telefone: voucher.telefone,
+    validacao: "pendente",
+  });
+}
+
+function voucherQrCodeUrl(voucher: Record<string, unknown>) {
+  return `https://api.qrserver.com/v1/create-qr-code/?size=240x240&format=png&margin=10&data=${encodeURIComponent(voucherQrPayload(voucher))}`;
+}
+
 function voucherEmailHtml(voucher: Record<string, unknown>) {
   const siteUrl = Deno.env.get("SITE_URL")?.replace(/\/$/, "");
   const voucherUrl = siteUrl ? `${siteUrl}/meus-vouchers.html` : "";
+  const voucherCode = escapeHtml(voucher.voucher_codigo);
+  const qrCodeUrl = voucherQrCodeUrl(voucher);
   const rows = [
     ["Inscricao", voucher.numero_inscricao || "Em processamento"],
     ["Nome", voucher.nome_completo],
@@ -47,18 +63,35 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
     .join("");
 
   return `<!doctype html>
-<html lang="pt-BR"><body style="margin:0;background:#f8fafc;font-family:Arial,sans-serif;color:#0f172a">
-  <main style="max-width:600px;margin:24px auto;background:#ffffff;border:1px solid #e2e8f0;padding:32px">
-    <h1 style="margin:0 0 8px;font-size:24px">VIII Trilha da Revolucao</h1>
-    <p style="margin:0 0 24px;color:#475569">Pagamento confirmado. Seu voucher esta pronto.</p>
-    <div style="padding:18px;background:#ecfdf5;border:1px solid #a7f3d0;text-align:center">
-      <div style="font-size:12px;color:#047857">CODIGO DO VOUCHER</div>
-      <strong style="font-size:24px;letter-spacing:1px">${escapeHtml(voucher.voucher_codigo)}</strong>
-    </div>
-    <table style="width:100%;border-collapse:collapse;margin:24px 0">${rows}</table>
-    ${voucher.camiseta_garantida ? "<p style=\"color:#047857\">Camiseta garantida para esta inscricao.</p>" : ""}
-    ${voucherUrl ? `<p style="margin-top:28px"><a href="${escapeHtml(voucherUrl)}" style="display:inline-block;padding:12px 18px;background:#0f766e;color:#fff;text-decoration:none">Abrir meus vouchers</a></p>` : ""}
-  </main>
+<html lang="pt-BR"><body style="margin:0;background:#111111;font-family:Arial,sans-serif;color:#191919">
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background:#111111;padding:28px 12px"><tr><td align="center">
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="max-width:600px;background:#f8f6ed;border-radius:16px;overflow:hidden">
+      <tr><td style="padding:28px 32px;background:#0b0b0c;border-bottom:4px solid #f4c20d;text-align:center">
+        <div style="color:#f4c20d;font-size:12px;font-weight:700;letter-spacing:2px;text-transform:uppercase">Pagamento confirmado</div>
+        <h1 style="margin:10px 0 0;color:#ffffff;font-size:27px;line-height:1.1">VIII Trilha da Revolução</h1>
+      </td></tr>
+      <tr><td style="padding:30px 32px 12px;text-align:center">
+        <p style="margin:0;color:#494949;font-size:16px;line-height:1.5">Olá, <strong>${escapeHtml(voucher.nome_completo)}</strong>! Seu pagamento foi aprovado e sua inscrição está confirmada.</p>
+      </td></tr>
+      <tr><td style="padding:18px 32px;text-align:center">
+        <div style="padding:18px;border:1px solid #d8d2c1;border-radius:12px;background:#ffffff">
+          <div style="color:#717171;font-size:11px;font-weight:700;letter-spacing:1.5px">CÓDIGO DO VOUCHER</div>
+          <div style="margin-top:6px;color:#111111;font-size:25px;font-weight:700;letter-spacing:1px">${voucherCode}</div>
+          <img src="${escapeHtml(qrCodeUrl)}" width="180" height="180" alt="QR Code do voucher ${voucherCode}" style="display:block;width:180px;height:180px;margin:18px auto 6px;border:0" />
+          <div style="color:#606060;font-size:13px;line-height:1.4">Apresente este QR Code no credenciamento.</div>
+        </div>
+      </td></tr>
+      <tr><td style="padding:8px 32px 14px">
+        <h2 style="margin:0;color:#111111;font-size:17px">Dados da inscrição</h2>
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="margin-top:10px;border:1px solid #ded8c9;border-radius:10px;overflow:hidden;background:#ffffff">${rows}</table>
+      </td></tr>
+      ${voucher.camiseta_garantida ? '<tr><td style="padding:0 32px 14px"><div style="padding:14px;border-radius:10px;background:#188a3a;color:#ffffff;font-size:14px;font-weight:700;line-height:1.4">Camiseta garantida para esta inscrição. Retire-a no credenciamento.</div></td></tr>' : ""}
+      <tr><td style="padding:8px 32px 30px;text-align:center">
+        <p style="margin:0 0 18px;color:#555555;font-size:14px;line-height:1.5">Para retirar a pulseira, leve este voucher, o comprovante do Pix, 1 kg de alimento não perecível e um agasalho.</p>
+        ${voucherUrl ? `<a href="${escapeHtml(voucherUrl)}" style="display:inline-block;padding:14px 22px;border-radius:8px;background:#f4c20d;color:#111111;font-size:14px;font-weight:700;text-decoration:none">ABRIR MEUS VOUCHERS</a>` : ""}
+      </td></tr>
+    </table>
+  </td></tr></table>
 </body></html>`;
 }
 
@@ -99,7 +132,10 @@ function getPublishableKey() {
 async function sendTestVoucherEmail(request: Request, supabaseUrl: string) {
   const allowedRecipient = Deno.env.get("VOUCHER_EMAIL_TEST_RECIPIENT")?.trim().toLowerCase();
   if (!allowedRecipient) {
-    return sendJson({ error: "Configure VOUCHER_EMAIL_TEST_RECIPIENT nos segredos da Edge Function." }, 503);
+    return sendJson(
+      { error: "Configure VOUCHER_EMAIL_TEST_RECIPIENT nos segredos da Edge Function." },
+      503,
+    );
   }
 
   const authorization = request.headers.get("Authorization");
@@ -112,7 +148,9 @@ async function sendTestVoucherEmail(request: Request, supabaseUrl: string) {
     headers: { Authorization: authorization, apikey: String(publishableKey) },
   });
   const user = await userResponse.json().catch(() => ({}));
-  const recipient = String(user?.email || "").trim().toLowerCase();
+  const recipient = String(user?.email || "")
+    .trim()
+    .toLowerCase();
 
   if (!userResponse.ok || !recipient) {
     return sendJson({ error: "Nao foi possivel confirmar a conta logada." }, 401);
@@ -127,6 +165,7 @@ async function sendTestVoucherEmail(request: Request, supabaseUrl: string) {
       voucher_codigo: "TESTE-EMAIL",
       usuario_email: recipient,
       nome_completo: user.user_metadata?.full_name || "Cliente de teste",
+      telefone: "51999999999",
       cpf: "000.000.000-00",
       grupo: "Grupo demonstracao",
       cidade: "Gravatai - RS",
@@ -178,8 +217,12 @@ Deno.serve(async (request) => {
       .is("email_voucher_enviado_em", null)
       .lte("email_voucher_agendado_em", now.toISOString())
       .in("pagamento_status", approvedPaymentStatuses)
-      .or(`email_voucher_processando_em.is.null,email_voucher_processando_em.lt.${staleProcessingAt}`)
-      .select("voucher_codigo, usuario_email, nome_completo, cpf, grupo, cidade, veiculo, tamanho_camiseta, numero_inscricao, camiseta_garantida, voucher_emitido_em")
+      .or(
+        `email_voucher_processando_em.is.null,email_voucher_processando_em.lt.${staleProcessingAt}`,
+      )
+      .select(
+        "voucher_codigo, usuario_email, nome_completo, telefone, cpf, grupo, cidade, veiculo, tamanho_camiseta, numero_inscricao, camiseta_garantida, voucher_emitido_em",
+      )
       .maybeSingle();
 
     if (claimError || !voucher) continue;
