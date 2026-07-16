@@ -52,7 +52,7 @@ function voucherQrCodeUrl(voucher: Record<string, unknown>) {
 
 function voucherEmailHtml(voucher: Record<string, unknown>) {
   const siteUrl = Deno.env.get("SITE_URL")?.replace(/\/$/, "");
-  const voucherUrl = siteUrl ? `${siteUrl}/meus-vouchers.html` : "";
+  const voucherUrl = siteUrl ? `${siteUrl}/inscricao.html?vouchers=1` : "";
   const voucherCode = escapeHtml(voucher.voucher_codigo);
   const qrCodeUrl = voucherQrCodeUrl(voucher);
   const rows = [
