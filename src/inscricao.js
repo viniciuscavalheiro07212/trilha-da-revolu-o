@@ -165,6 +165,7 @@ function clearFieldErrors() {
 // Todos os campos sao obrigatorios, exceto "observacoes".
 const requiredFields = [
   ["nome_completo", "Preencha o nome completo."],
+  ["ddd", "Preencha o DDD."],
   ["telefone", "Preencha o telefone."],
   ["cpf", "Preencha o CPF."],
   ["tipo_sanguineo", "Selecione o tipo sanguineo."],
@@ -191,10 +192,16 @@ function validateForm() {
     }
   });
 
+  const ddd = form.elements.ddd;
   const telefone = form.elements.telefone;
+  const dddDigits = onlyDigits(ddd.value);
   const telefoneDigits = onlyDigits(telefone.value);
-  if (telefone.value.trim() && (telefoneDigits.length < 10 || telefoneDigits.length > 11)) {
-    setFieldError(telefone, "Telefone invalido: informe DDD + numero (10 ou 11 digitos).");
+  if (ddd.value.trim() && dddDigits.length !== 2) {
+    setFieldError(ddd, "DDD invalido: informe 2 digitos.");
+    invalid.push(ddd);
+  }
+  if (telefone.value.trim() && (telefoneDigits.length < 8 || telefoneDigits.length > 9)) {
+    setFieldError(telefone, "Celular invalido: informe 8 ou 9 digitos.");
     invalid.push(telefone);
   }
 
@@ -245,7 +252,8 @@ function formToData(formElement) {
   const formData = new FormData(formElement);
   const data = Object.fromEntries(formData.entries());
 
-  data.telefone = onlyDigits(data.telefone);
+  data.telefone = `${onlyDigits(data.ddd)}${onlyDigits(data.telefone)}`;
+  delete data.ddd;
   data.cpf = onlyDigits(data.cpf);
   data.solidaria = formData.has("solidaria");
   data.termos = formData.has("termos");
