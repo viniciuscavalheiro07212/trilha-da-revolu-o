@@ -404,11 +404,15 @@ function renderShirtSummary() {
   const quantities = new Map(sizes.map((size) => [size, 0]));
 
   guaranteed.forEach((item) => {
-    const size = String(item.tamanho_camiseta || "").trim().toUpperCase();
+    const size = String(item.tamanho_camiseta || "")
+      .trim()
+      .toUpperCase();
     if (quantities.has(size)) quantities.set(size, quantities.get(size) + 1);
   });
 
-  const withoutSize = guaranteed.filter((item) => !String(item.tamanho_camiseta || "").trim()).length;
+  const withoutSize = guaranteed.filter(
+    (item) => !String(item.tamanho_camiseta || "").trim(),
+  ).length;
   const remaining = Math.max(0, 200 - guaranteed.length);
 
   shirtCounters.innerHTML = `

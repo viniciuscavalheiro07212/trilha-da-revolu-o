@@ -32,7 +32,8 @@ async function loadShirtAvailability() {
 
     if (!shirtAvailable) {
       shirtSizeInput.value = "";
-      shirtStockNote.textContent = "Camisetas esgotadas. A inscricao e a compra do ingresso continuam disponiveis.";
+      shirtStockNote.textContent =
+        "Camisetas esgotadas. A inscricao e a compra do ingresso continuam disponiveis.";
       return;
     }
 
