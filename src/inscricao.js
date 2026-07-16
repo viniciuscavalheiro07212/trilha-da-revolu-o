@@ -306,6 +306,18 @@ function camisetaMessage(data) {
   return "Os 200 primeiros vouchers gerados ganham camiseta. Confirme a posicao no credenciamento.";
 }
 
+function validationMessage(data) {
+  if (!data.validado_em) return "";
+
+  const validatedAt = new Intl.DateTimeFormat("pt-BR", {
+    dateStyle: "long",
+    timeStyle: "short",
+    timeZone: "America/Sao_Paulo",
+  }).format(new Date(data.validado_em));
+
+  return `Este voucher ja foi validado em ${validatedAt} e nao pode ser utilizado novamente.`;
+}
+
 function qrPayload(data) {
   return JSON.stringify({
     evento: eventInfo.nome,
@@ -370,6 +382,11 @@ async function voucherCard(data, index) {
           <div class="voucher-alert">
             Para retirar a pulseira: apresentar este voucher, comprovante do PIX, 1kg de alimento nao perecivel e um agasalho.
           </div>
+          ${
+            data.validado_em
+              ? `<div class="voucher-alert is-validated">${escapeHtml(validationMessage(data))}</div>`
+              : ""
+          }
         </div>
         <div class="voucher-qr">
           ${qrCode}
