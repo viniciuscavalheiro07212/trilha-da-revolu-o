@@ -99,6 +99,7 @@ function voucherEmailHtml(voucher: Record<string, unknown>) {
       <tr><td style="padding:8px 32px 30px;text-align:center">
         <p style="margin:0 0 18px;color:#555555;font-size:14px;line-height:1.5">Para retirar a pulseira, leve este voucher, o comprovante do Pix, 1 kg de alimento não perecível e um agasalho.</p>
         ${voucherUrl ? `<a href="${escapeHtml(voucherUrl)}" style="display:inline-block;padding:14px 22px;border-radius:8px;background:#f4c20d;color:#111111;font-size:14px;font-weight:700;text-decoration:none">ABRIR MEUS VOUCHERS</a>` : ""}
+        <p style="margin:22px 0 0;color:#555555;font-size:14px;line-height:1.5">Precisa de ajuda? Fale com a organização pelo WhatsApp:<br><a href="https://wa.me/5551993725451" style="color:#188a3a;font-weight:700;text-decoration:none">+55 (51) 99372-5451</a></p>
       </td></tr>
     </table>
   </td></tr></table>
