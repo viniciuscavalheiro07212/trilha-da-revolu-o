@@ -6,6 +6,7 @@ import {
   souValidador,
   validarVoucher,
   desfazerValidacao,
+  excluirVoucher,
   listarTodasInscricoes,
   carregarValorInscricao,
   salvarValorInscricao,
@@ -297,6 +298,7 @@ function renderResult(dados) {
             ? `<button type="button" class="result-undo" data-undo="${escapeHtml(dados.voucher_codigo)}">Desfazer validacao</button>`
             : ""
         }
+        <button type="button" class="result-delete" data-delete="${escapeHtml(dados.voucher_codigo)}">Excluir voucher</button>
       `;
 
   resultPanel.innerHTML = `
@@ -367,7 +369,7 @@ function renderTable() {
   const lista = filteredInscricoes();
 
   if (!lista.length) {
-    voucherRows.innerHTML = `<tr><td colspan="7" class="table-empty">Nenhuma inscricao encontrada.</td></tr>`;
+    voucherRows.innerHTML = `<tr><td colspan="8" class="table-empty">Nenhuma inscricao encontrada.</td></tr>`;
     return;
   }
 
@@ -388,6 +390,7 @@ function renderTable() {
             </span>
           </td>
           <td>${escapeHtml(item.validado_por || "-")}</td>
+          <td><button type="button" class="table-delete" data-delete="${escapeHtml(item.voucher_codigo)}">Excluir</button></td>
         </tr>
       `;
     })
@@ -521,6 +524,12 @@ manualForm.addEventListener("submit", async (event) => {
 });
 
 resultPanel.addEventListener("click", async (event) => {
+  const deleteButton = event.target.closest("[data-delete]");
+  if (deleteButton) {
+    await deleteVoucherWithConfirmation(deleteButton.dataset.delete, deleteButton);
+    return;
+  }
+
   const undoButton = event.target.closest("[data-undo]");
   if (!undoButton) return;
 
@@ -546,6 +555,45 @@ resultPanel.addEventListener("click", async (event) => {
     scanStatus.textContent = "Nao foi possivel desfazer a validacao.";
     undoButton.disabled = false;
   }
+});
+
+async function deleteVoucherWithConfirmation(codigo, button) {
+  const inscricao = inscricoes.find((item) => item.voucher_codigo === codigo);
+  const nome = inscricao?.nome_completo || codigo;
+  const confirmed = window.confirm(
+    `Excluir o voucher ${codigo} de ${nome}? Esta acao remove o voucher e nao pode ser desfeita.`,
+  );
+
+  if (!confirmed) return;
+
+  button.disabled = true;
+
+  try {
+    await excluirVoucher(codigo);
+    inscricoes = inscricoes.filter((item) => item.voucher_codigo !== codigo);
+    renderTable();
+    renderProfit();
+    renderShirtSummary();
+    tableStatus.textContent = `Voucher ${codigo} excluido.`;
+    resultPanel.innerHTML = `
+      <div class="result-empty">
+        <span>Voucher excluido</span>
+        <strong>Registro removido</strong>
+        <p>O historico da compra foi preservado como voucher excluido.</p>
+      </div>
+    `;
+  } catch (error) {
+    console.error(error);
+    tableStatus.textContent = error.message || "Nao foi possivel excluir o voucher.";
+    button.disabled = false;
+  }
+}
+
+voucherRows.addEventListener("click", async (event) => {
+  const deleteButton = event.target.closest("[data-delete]");
+  if (!deleteButton) return;
+
+  await deleteVoucherWithConfirmation(deleteButton.dataset.delete, deleteButton);
 });
 
 searchInput.addEventListener("input", renderTable);

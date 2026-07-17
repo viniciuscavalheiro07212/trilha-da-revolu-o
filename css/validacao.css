@@ -85,6 +85,7 @@
 .result-undo{justify-self:start;min-height:44px;border:1px solid rgba(255,255,255,.3);border-radius:12px;padding:10px 18px;background:transparent;color:#fff;font-family:var(--font-condensed);font-size:15px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer;transition:transform .12s ease}
 .result-undo:active{transform:scale(.96)}
 .result-undo:disabled{opacity:.5;cursor:default}
+.result-delete,.table-delete{border:1px solid rgba(207,31,42,.72);border-radius:9px;background:rgba(207,31,42,.12);color:#ff858b;font-family:var(--font-condensed);font-size:13px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}.result-delete{justify-self:start;min-height:44px;padding:10px 18px}.table-delete{padding:7px 10px}.result-delete:disabled,.table-delete:disabled{opacity:.5;cursor:default}
 .result-shirt{padding:12px 14px;border-radius:12px;font-family:var(--font-condensed);font-size:17px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;text-align:center}
 .result-shirt.is-yes{background:#188a3a;color:#fff;box-shadow:0 10px 26px -14px rgba(40,166,74,.8)}
 .result-shirt.is-no{background:rgba(255,255,255,.06);border:1px dashed rgba(255,255,255,.3);color:#9a9a9a}

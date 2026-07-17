@@ -30,6 +30,17 @@ export default async function handler(request, response) {
           };
         }
 
+        if (pending.status === "voucher-excluido") {
+          return {
+            orderId: pending.mercado_pago_order_id,
+            status: { status: "deleted", paymentStatus: "deleted", approved: false },
+            amount: pending.amount,
+            registration: pending.dados,
+            createdAt: pending.created_at,
+            expired: false,
+          };
+        }
+
         const expiresAt = pixExpirationAt(pending.created_at);
         const expired = Date.now() >= expiresAt.getTime();
 

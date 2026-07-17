@@ -33,6 +33,28 @@ export async function desfazerValidacao(codigo) {
   return data;
 }
 
+export async function excluirVoucher(codigo) {
+  requireSupabase();
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error || !data?.session?.access_token) {
+    throw new Error("Faca login novamente para continuar.");
+  }
+
+  const response = await fetch("/api/admin/delete-voucher", {
+    method: "POST",
+    headers: {
+      authorization: `Bearer ${data.session.access_token}`,
+      "content-type": "application/json",
+    },
+    body: JSON.stringify({ voucherCode: codigo, confirm: true }),
+  });
+  const payload = await response.json().catch(() => ({}));
+
+  if (!response.ok) throw new Error(payload.error || "Nao foi possivel excluir o voucher.");
+  return payload;
+}
+
 export async function listarTodasInscricoes() {
   requireSupabase();
 

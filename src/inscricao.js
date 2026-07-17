@@ -486,11 +486,12 @@ function pendingPaymentItem(payment) {
   const isPaid = ["approved", "processed", "completed"].includes(
     payment?.status?.paymentStatus || payment?.status?.status,
   );
+  const isDeleted = (payment?.status?.paymentStatus || payment?.status?.status) === "deleted";
   const isCancelled = payment.expired || ["rejected", "cancelled", "canceled"].includes(
     payment?.status?.paymentStatus || payment?.status?.status,
   );
-  const canResume = !isCancelled && !isPaid;
-  const stateLabel = isPaid ? "Pago" : isCancelled ? "Cancelado" : "Pendente";
+  const canResume = !isCancelled && !isPaid && !isDeleted;
+  const stateLabel = isDeleted ? "Excluido" : isPaid ? "Pago" : isCancelled ? "Cancelado" : "Pendente";
 
   return `
     <details class="pending-payment-item ${isCancelled ? "is-cancelled" : ""}">
@@ -509,7 +510,9 @@ function pendingPaymentItem(payment) {
         </div>
         <div class="voucher-alert is-pending-payment">
           ${
-            isPaid
+            isDeleted
+              ? "Este voucher foi excluido pela administracao."
+              : isPaid
               ? "Pagamento confirmado. O voucher correspondente esta disponivel na aba Meus vouchers."
               : isCancelled
                 ? "O prazo de 30 minutos para este Pix terminou. Gere uma nova cobranca para continuar."
@@ -562,7 +565,7 @@ function renderPurchases() {
     const paymentStatus = payment?.status?.paymentStatus || payment?.status?.status;
     return (
       !payment.expired &&
-      !["approved", "processed", "completed", "rejected", "cancelled", "canceled"].includes(
+      !["approved", "processed", "completed", "rejected", "cancelled", "canceled", "deleted"].includes(
         paymentStatus,
       )
     );
@@ -617,6 +620,7 @@ function paymentStatusText(payment) {
   if (payment?.expired) return "Pagamento cancelado: prazo Pix expirado.";
   const paymentStatus = payment?.status?.paymentStatus || payment?.status?.status;
 
+  if (paymentStatus === "deleted") return "Voucher excluido pela administracao.";
   if (paymentStatus === "approved") return "Pagamento aprovado. Gerando voucher...";
   if (paymentStatus === "rejected") return "Pagamento recusado. Gere uma nova cobranca Pix.";
   if (paymentStatus === "cancelled" || paymentStatus === "canceled") return "Pagamento cancelado.";
