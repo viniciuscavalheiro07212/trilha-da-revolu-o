@@ -305,13 +305,12 @@ export async function getPendingPixPayment(orderId) {
   return data;
 }
 
-export async function listPendingPixPayments(userId) {
+export async function listPixPayments(userId) {
   const supabase = getSupabaseAdmin();
   const { data, error } = await supabase
     .from("pagamentos_pix_pendentes")
     .select("mercado_pago_order_id, dados, amount, status, created_at")
     .eq("usuario_id", userId)
-    .neq("status", "voucher-gerado")
     .order("created_at", { ascending: false });
 
   if (error) throw error;
