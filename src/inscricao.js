@@ -492,9 +492,16 @@ function pendingPaymentItem(payment) {
   );
   const canResume = !isCancelled && !isPaid && !isDeleted;
   const stateLabel = isDeleted ? "Excluido" : isPaid ? "Pago" : isCancelled ? "Cancelado" : "Pendente";
+  const stateClass = isDeleted
+    ? "is-deleted"
+    : isPaid
+      ? "is-paid"
+      : isCancelled
+        ? "is-cancelled"
+        : "is-pending";
 
   return `
-    <details class="pending-payment-item ${isCancelled ? "is-cancelled" : ""}">
+    <details class="pending-payment-item ${stateClass}">
       <summary>
         <span class="pending-payment-person">
           <strong>${escapeHtml(registration.nome_completo || "Inscricao em andamento")}</strong>
