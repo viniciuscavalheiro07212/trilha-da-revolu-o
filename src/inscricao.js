@@ -466,53 +466,48 @@ async function voucherCard(data, index) {
   `;
 }
 
-function pendingPaymentCard(payment) {
+function pendingPaymentItem(payment) {
   const registration = payment.registration || {};
   const paymentStatus = paymentStatusText(payment);
-  const canResume = !payment.expired && !["rejected", "cancelled", "canceled"].includes(
+  const isCancelled = payment.expired || ["rejected", "cancelled", "canceled"].includes(
     payment?.status?.paymentStatus || payment?.status?.status,
   );
+  const canResume = !isCancelled;
+  const stateLabel = isCancelled ? "Cancelado" : "Pendente";
 
   return `
-    <article class="voucher-card pending-payment-card">
-      <header class="voucher-top">
-        <div class="voucher-title">
-          <span>Pagamento pendente</span>
-          <strong>Voucher aguardando Pix</strong>
+    <details class="pending-payment-item ${isCancelled ? "is-cancelled" : ""}">
+      <summary>
+        <span class="pending-payment-person">
+          <strong>${escapeHtml(registration.nome_completo || "Inscricao em andamento")}</strong>
+          <small>${escapeHtml(formatCurrencyBRL(payment.amount))}</small>
+        </span>
+        <span class="pending-payment-status">${stateLabel}</span>
+      </summary>
+      <div class="pending-payment-content">
+        <div class="voucher-data">
+          ${field("Status", paymentStatus)}
+          ${field("Telefone", registration.telefone)}
+          ${field("Tamanho camiseta", registration.tamanho_camiseta)}
         </div>
-        <div class="voucher-code">PENDENTE</div>
-      </header>
-      <div class="voucher-body pending-payment-body">
-        <div class="voucher-details">
-          <div class="voucher-name">
-            <span>Participante</span>
-            <strong>${escapeHtml(registration.nome_completo || "Inscricao em andamento")}</strong>
-          </div>
-          <div class="voucher-data">
-            ${field("Valor", formatCurrencyBRL(payment.amount))}
-            ${field("Status", paymentStatus)}
-            ${field("Telefone", registration.telefone)}
-            ${field("Tamanho camiseta", registration.tamanho_camiseta)}
-          </div>
-          <div class="voucher-alert is-pending-payment">
-            ${
-              payment.expired
-                ? "O prazo de 30 minutos para este Pix terminou. Gere uma nova cobranca para continuar."
-                : "O voucher sera gerado assim que o pagamento Pix for confirmado."
-            }
-          </div>
+        <div class="voucher-alert is-pending-payment">
           ${
-            canResume
-              ? `<div class="payment-actions pending-payment-actions">
-                  <button type="button" class="resume-pix-payment" data-order-id="${escapeHtml(payment.orderId)}">
-                    Continuar pagamento Pix
-                  </button>
-                </div>`
-              : ""
+            isCancelled
+              ? "O prazo de 30 minutos para este Pix terminou. Gere uma nova cobranca para continuar."
+              : "O voucher sera gerado assim que o pagamento Pix for confirmado."
           }
         </div>
+        ${
+          canResume
+            ? `<div class="payment-actions pending-payment-actions">
+                <button type="button" class="resume-pix-payment" data-order-id="${escapeHtml(payment.orderId)}">
+                  Continuar pagamento Pix
+                </button>
+              </div>`
+            : ""
+        }
       </div>
-    </article>
+    </details>
   `;
 }
 
@@ -523,13 +518,21 @@ async function renderVouchers() {
   }
 
   const cards = await Promise.all(vouchers.map((voucher, index) => voucherCard(voucher, index)));
-  const pendingCards = pendingPixPayments.map((payment) => pendingPaymentCard(payment));
+  const pendingCards = pendingPixPayments.map((payment) => pendingPaymentItem(payment));
+  const activePendingCount = pendingPixPayments.filter((payment) => {
+    const paymentStatus = payment?.status?.paymentStatus || payment?.status?.status;
+    return !payment.expired && !["rejected", "cancelled", "canceled"].includes(paymentStatus);
+  }).length;
+  const cancelledCount = pendingPixPayments.length - activePendingCount;
   const summary = [
     vouchers.length
       ? `${vouchers.length} ${vouchers.length === 1 ? "inscricao gerada" : "inscricoes geradas"}`
       : null,
-    pendingPixPayments.length
-      ? `${pendingPixPayments.length} ${pendingPixPayments.length === 1 ? "pagamento pendente" : "pagamentos pendentes"}`
+    activePendingCount
+      ? `${activePendingCount} ${activePendingCount === 1 ? "pagamento pendente" : "pagamentos pendentes"}`
+      : null,
+    cancelledCount
+      ? `${cancelledCount} ${cancelledCount === 1 ? "pagamento cancelado" : "pagamentos cancelados"}`
       : null,
   ]
     .filter(Boolean)
