@@ -1,5 +1,10 @@
 import QRCode from "qrcode";
-import { criarPedidoPix, confirmarVoucherPago, consultarPedidoPix } from "./mercadopago.js";
+import {
+  criarPedidoPix,
+  confirmarVoucherPago,
+  consultarPedidoPix,
+  listarPedidosPixPendentes,
+} from "./mercadopago.js";
 import { listarMinhasInscricoes } from "./supabase/inscricoes.js";
 import { isSupabaseConfigured, supabase } from "./supabase/client.js";
 import { initUserMenuToggle, renderUserMenu } from "./user-menu.js";
@@ -14,6 +19,7 @@ const tabPanels = document.querySelectorAll(".tab-panel");
 const shirtSizeInput = form.elements.tamanho_camiseta;
 const shirtStockNote = document.querySelector("#shirt-stock-note");
 const vouchers = [];
+const pendingPixPayments = [];
 let currentSession = null;
 let pendingPayment = null;
 let paymentPolling = null;
@@ -166,6 +172,7 @@ async function initAuth() {
       // senao os dados do usuario anterior ficam visiveis ate recarregar.
       vouchersLoadedForUserId = null;
       vouchers.splice(0, vouchers.length);
+      pendingPixPayments.splice(0, pendingPixPayments.length);
       pendingPayment = null;
       stopPaymentPolling();
       showPaymentTab(false);
@@ -459,31 +466,110 @@ async function voucherCard(data, index) {
   `;
 }
 
+function pendingPaymentCard(payment) {
+  const registration = payment.registration || {};
+  const paymentStatus = paymentStatusText(payment);
+  const canResume = !payment.expired && !["rejected", "cancelled", "canceled"].includes(
+    payment?.status?.paymentStatus || payment?.status?.status,
+  );
+
+  return `
+    <article class="voucher-card pending-payment-card">
+      <header class="voucher-top">
+        <div class="voucher-title">
+          <span>Pagamento pendente</span>
+          <strong>Voucher aguardando Pix</strong>
+        </div>
+        <div class="voucher-code">PENDENTE</div>
+      </header>
+      <div class="voucher-body pending-payment-body">
+        <div class="voucher-details">
+          <div class="voucher-name">
+            <span>Participante</span>
+            <strong>${escapeHtml(registration.nome_completo || "Inscricao em andamento")}</strong>
+          </div>
+          <div class="voucher-data">
+            ${field("Valor", formatCurrencyBRL(payment.amount))}
+            ${field("Status", paymentStatus)}
+            ${field("Telefone", registration.telefone)}
+            ${field("Tamanho camiseta", registration.tamanho_camiseta)}
+          </div>
+          <div class="voucher-alert is-pending-payment">
+            ${
+              payment.expired
+                ? "O prazo de 30 minutos para este Pix terminou. Gere uma nova cobranca para continuar."
+                : "O voucher sera gerado assim que o pagamento Pix for confirmado."
+            }
+          </div>
+          ${
+            canResume
+              ? `<div class="payment-actions pending-payment-actions">
+                  <button type="button" class="resume-pix-payment" data-order-id="${escapeHtml(payment.orderId)}">
+                    Continuar pagamento Pix
+                  </button>
+                </div>`
+              : ""
+          }
+        </div>
+      </div>
+    </article>
+  `;
+}
+
 async function renderVouchers() {
-  if (!vouchers.length) {
+  if (!vouchers.length && !pendingPixPayments.length) {
     emptyVoucher();
     return;
   }
 
   const cards = await Promise.all(vouchers.map((voucher, index) => voucherCard(voucher, index)));
+  const pendingCards = pendingPixPayments.map((payment) => pendingPaymentCard(payment));
+  const summary = [
+    vouchers.length
+      ? `${vouchers.length} ${vouchers.length === 1 ? "inscricao gerada" : "inscricoes geradas"}`
+      : null,
+    pendingPixPayments.length
+      ? `${pendingPixPayments.length} ${pendingPixPayments.length === 1 ? "pagamento pendente" : "pagamentos pendentes"}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(" · ");
 
   panel.innerHTML = `
     <div class="voucher-list">
       <div class="voucher-summary">
-        <span>${vouchers.length} ${vouchers.length === 1 ? "inscricao gerada" : "inscricoes geradas"}</span>
-        <strong>${vouchers.map((voucher) => escapeHtml(voucher.voucher_codigo)).join(" - ")}</strong>
+        <span>${summary}</span>
+        <strong>${
+          vouchers.length
+            ? vouchers.map((voucher) => escapeHtml(voucher.voucher_codigo)).join(" - ")
+            : "Voce pode retomar o pagamento quando quiser."
+        }</strong>
       </div>
       ${cards.join("")}
+      ${pendingCards.join("")}
       <div class="voucher-actions">
-        <button type="button" id="print-voucher">Imprimir vouchers</button>
+        ${vouchers.length ? '<button type="button" id="print-voucher">Imprimir vouchers</button>' : ""}
         <button type="button" id="clear-vouchers">Limpar vouchers</button>
       </div>
     </div>
   `;
 
-  document.querySelector("#print-voucher").addEventListener("click", () => window.print());
+  document.querySelector("#print-voucher")?.addEventListener("click", () => window.print());
+  document.querySelectorAll(".resume-pix-payment").forEach((button) => {
+    button.addEventListener("click", () => {
+      const payment = pendingPixPayments.find((item) => item.orderId === button.dataset.orderId);
+      if (!payment) return;
+
+      pendingPayment = payment;
+      showPaymentTab(true);
+      renderPayment();
+      activateTab("pagamento");
+      startPaymentPolling();
+    });
+  });
   document.querySelector("#clear-vouchers").addEventListener("click", () => {
     vouchers.splice(0, vouchers.length);
+    pendingPixPayments.splice(0, pendingPixPayments.length);
     form.reset();
     loadShirtAvailability();
     emptyVoucher();
@@ -496,6 +582,7 @@ async function renderVouchers() {
 let vouchersLoadedForUserId = null;
 
 function paymentStatusText(payment) {
+  if (payment?.expired) return "Pagamento cancelado: prazo Pix expirado.";
   const paymentStatus = payment?.status?.paymentStatus || payment?.status?.status;
 
   if (paymentStatus === "approved") return "Pagamento aprovado. Gerando voucher...";
@@ -556,6 +643,9 @@ async function finishPaidVoucher() {
   try {
     const { voucher } = await confirmarVoucherPago(pendingPayment.orderId);
     vouchers.unshift(voucher);
+    const paidOrderId = pendingPayment.orderId;
+    const pendingIndex = pendingPixPayments.findIndex((item) => item.orderId === paidOrderId);
+    if (pendingIndex !== -1) pendingPixPayments.splice(pendingIndex, 1);
     await renderVouchers();
 
     stopPaymentPolling();
@@ -578,6 +668,15 @@ async function finishPaidVoucher() {
 
 async function checkPaymentStatus(showWaitingMessage = false) {
   if (!pendingPayment) return;
+
+  if (pendingPayment.expiresAt && Date.now() >= new Date(pendingPayment.expiresAt).getTime()) {
+    pendingPayment.expired = true;
+    pendingPayment.status = { status: "cancelled", paymentStatus: "cancelled", approved: false };
+    stopPaymentPolling();
+    renderPayment();
+    status.textContent = "O prazo de 30 minutos para este Pix terminou. Gere uma nova cobranca.";
+    return;
+  }
 
   try {
     const paymentStatus = await consultarPedidoPix(pendingPayment.orderId);
@@ -614,9 +713,13 @@ async function loadSavedVouchers() {
   if (vouchersLoadedForUserId === currentSession.user?.id) return;
 
   try {
-    const savedVouchers = await listarMinhasInscricoes();
+    const [savedVouchers, { payments: savedPendingPayments = [] }] = await Promise.all([
+      listarMinhasInscricoes(),
+      listarPedidosPixPendentes(),
+    ]);
     vouchersLoadedForUserId = currentSession.user?.id || null;
     vouchers.splice(0, vouchers.length, ...savedVouchers);
+    pendingPixPayments.splice(0, pendingPixPayments.length, ...savedPendingPayments);
     await renderVouchers();
   } catch (error) {
     status.textContent = "Nao foi possivel carregar seus vouchers agora.";
@@ -650,6 +753,7 @@ bindAuthButtons({
   afterLogout: async () => {
     vouchersLoadedForUserId = null;
     vouchers.splice(0, vouchers.length);
+    pendingPixPayments.splice(0, pendingPixPayments.length);
     pendingPayment = null;
     stopPaymentPolling();
     showPaymentTab(false);
@@ -704,6 +808,8 @@ form.addEventListener("submit", async (event) => {
       ...(await criarPedidoPix(data)),
       registration: data,
     };
+    pendingPixPayments.unshift(pendingPayment);
+    await renderVouchers();
 
     showPaymentTab(true);
     renderPayment();

@@ -304,3 +304,26 @@ export async function getPendingPixPayment(orderId) {
   if (error) throw error;
   return data;
 }
+
+export async function listPendingPixPayments(userId) {
+  const supabase = getSupabaseAdmin();
+  const { data, error } = await supabase
+    .from("pagamentos_pix_pendentes")
+    .select("mercado_pago_order_id, dados, amount, status, created_at")
+    .eq("usuario_id", userId)
+    .neq("status", "voucher-gerado")
+    .order("created_at", { ascending: false });
+
+  if (error) throw error;
+  return data || [];
+}
+
+export async function updatePendingPixPaymentStatus(orderId, status) {
+  const supabase = getSupabaseAdmin();
+  const { error } = await supabase
+    .from("pagamentos_pix_pendentes")
+    .update({ status, updated_at: new Date().toISOString() })
+    .eq("mercado_pago_order_id", orderId);
+
+  if (error) throw error;
+}

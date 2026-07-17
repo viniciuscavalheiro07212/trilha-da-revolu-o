@@ -54,3 +54,9 @@ export function confirmarVoucherPago(orderId) {
     body: JSON.stringify({ orderId }),
   });
 }
+
+export function listarPedidosPixPendentes() {
+  return requestJson("/api/mercadopago/pending-pix-orders", {
+    method: "GET",
+  });
+}
