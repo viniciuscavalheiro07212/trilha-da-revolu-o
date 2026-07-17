@@ -550,10 +550,11 @@ async function renderVouchers() {
       </div>
       ${cards.join("")}
       ${pendingCards.join("")}
-      <div class="voucher-actions">
-        ${vouchers.length ? '<button type="button" id="print-voucher">Imprimir vouchers</button>' : ""}
-        <button type="button" id="clear-vouchers">Limpar vouchers</button>
-      </div>
+      ${
+        vouchers.length
+          ? '<div class="voucher-actions"><button type="button" id="print-voucher">Imprimir vouchers</button></div>'
+          : ""
+      }
     </div>
   `;
 
@@ -569,16 +570,6 @@ async function renderVouchers() {
       activateTab("pagamento");
       startPaymentPolling();
     });
-  });
-  document.querySelector("#clear-vouchers").addEventListener("click", () => {
-    vouchers.splice(0, vouchers.length);
-    pendingPixPayments.splice(0, pendingPixPayments.length);
-    form.reset();
-    loadShirtAvailability();
-    emptyVoucher();
-    status.textContent = "";
-    activateTab("inscricao");
-    form.querySelector("[name='nome_completo']").focus();
   });
 }
 
